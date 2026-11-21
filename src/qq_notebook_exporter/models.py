@@ -21,7 +21,7 @@ def _optional_int(value: Any) -> int | None:
         return None
 
 
-def _optional_datetime(value: Any) -> datetime | None:
+def parse_timestamp(value: Any) -> datetime | None:
     seconds = _optional_int(value)
     if seconds is None:
         return None
@@ -60,8 +60,8 @@ class NoteSummary:
             category_id=_optional_int(payload.get("cataid")),
             category_name=_clean_text(payload.get("cata_name")),
             is_starred=bool(_optional_int(payload.get("is_star"))),
-            created_at=_optional_datetime(payload.get("ctime")),
-            updated_at=_optional_datetime(payload.get("utime")),
+            created_at=parse_timestamp(payload.get("ctime")),
+            updated_at=parse_timestamp(payload.get("utime")),
             size=_optional_int(payload.get("size")),
         )
 
