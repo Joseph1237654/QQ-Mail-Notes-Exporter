@@ -89,3 +89,18 @@ def test_expired_sid_raises_authentication_error() -> None:
 
     with pytest.raises(AuthenticationRequiredError, match="登录态失效"):
         gateway.list_notes()
+
+
+def test_validate_session_returns_note_count() -> None:
+    transport = FakeTransport(
+        {
+            "/webnote/list": {
+                "head": {"ret": 0},
+                "body": {"total_affected_count": 726, "infos": []},
+            }
+        }
+    )
+    gateway = QQMailNotebookGateway(transport, "valid", request_delay=0)
+
+    assert gateway.validate_session() == 726
+    assert "limit=1" in transport.urls[0]
