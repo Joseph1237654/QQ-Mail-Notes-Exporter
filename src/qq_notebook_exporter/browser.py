@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import time
+from collections.abc import Callable, Iterable, Mapping
 from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlparse
@@ -14,6 +15,77 @@ from qq_notebook_exporter.errors import (
 
 LOGIN_URL = "https://mail.qq.com/"
 WEBNOTE_ORIGIN = "https://wx.mail.qq.com"
+
+
+def find_sid_in_url(url: str) -> str | None:
+    parsed = urlparse(url)
+    for component in (parsed.query, parsed.fragment):
+        params = parse_qs(component)
+        for key in ("sid", "SID", "Sid"):
+            values = params.get(key)
+            if values and values[0].strip():
+                return values[0].strip()
+    return None
+
+
+def find_sid_in_cookies(cookies: Iterable[Mapping[str, Any]]) -> str | None:
+    candidates: list[tuple[int, float, str]] = []
+    for cookie in cookies:
+        if str(cookie.get("name", "")).lower() != "sid":
+            continue
+
+        value = str(cookie.get("value", "")).strip()
+        if not value:
+            continue
+
+        domain = str(cookie.get("domain", "")).lower().lstrip(".")
+        if domain == "wx.mail.qq.com":
+            domain_priority = 3
+        elif domain == "mail.qq.com" or domain.endswith(".mail.qq.com"):
+            domain_priority = 2
+        elif domain == "qq.com" or domain.endswith(".qq.com"):
+            domain_priority = 1
+        else:
+            domain_priority = 0
+
+        try:
+            expires = float(cookie.get("expires") or 0)
+        except (TypeError, ValueError):
+            expires = 0.0
+        candidates.append((domain_priority, expires, value))
+
+    if not candidates:
+        return None
+    return max(candidates, key=lambda item: (item[0], item[1]))[2]
+
+
+def wait_for_valid_sid(
+    *,
+    find_sid: Callable[[], str | None],
+    validate_sid: Callable[[str], None],
+    timeout_seconds: int,
+    interval_seconds: float = 1.0,
+    monotonic: Callable[[], float] = time.monotonic,
+    sleep: Callable[[float], None] = time.sleep,
+) -> str:
+    deadline = monotonic() + timeout_seconds
+    last_error: AuthenticationRequiredError | None = None
+    rejected_sid: str | None = None
+
+    while monotonic() < deadline:
+        sid = find_sid()
+        if sid and sid != rejected_sid:
+            try:
+                validate_sid(sid)
+                return sid
+            except AuthenticationRequiredError as exc:
+                last_error = exc
+                rejected_sid = sid
+
+        sleep(interval_seconds)
+
+    message = "未检测到可用的 QQ 邮箱登录态。请完成登录并进入记事本页面。"
+    raise AuthenticationRequiredError(message) from last_error
 
 
 class BrowserSession:
@@ -104,18 +176,12 @@ class BrowserSession:
         if self._context is None:
             return None
 
-        for cookie in self._context.cookies():
-            if str(cookie.get("name", "")).lower() == "sid":
-                value = str(cookie.get("value", "")).strip()
-                if value:
-                    return value
-
         if self.page is not None:
-            query = parse_qs(urlparse(self.page.url).query)
-            values = query.get("sid") or query.get("SID")
-            if values and values[0].strip():
-                return values[0].strip()
-        return None
+            url_sid = find_sid_in_url(self.page.url)
+            if url_sid:
+                return url_sid
+
+        return find_sid_in_cookies(self._context.cookies())
 
     def wait_for_sid(self, timeout_seconds: int, interval_seconds: float = 1.0) -> str:
         deadline = time.monotonic() + timeout_seconds
@@ -127,6 +193,19 @@ class BrowserSession:
 
         raise AuthenticationRequiredError(
             "未检测到 QQ 邮箱登录态。请重新执行 login，并完成登录和记事本页面加载。"
+        )
+
+    def wait_for_valid_sid(
+        self,
+        timeout_seconds: int,
+        validator: Callable[[str], None],
+        interval_seconds: float = 1.0,
+    ) -> str:
+        return wait_for_valid_sid(
+            find_sid=self.find_sid,
+            validate_sid=validator,
+            timeout_seconds=timeout_seconds,
+            interval_seconds=interval_seconds,
         )
 
     def fetch_json(self, url: str) -> dict[str, Any]:
