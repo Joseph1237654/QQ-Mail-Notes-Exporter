@@ -1,0 +1,42 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "qq-mail-notebook-exporter"
+version = "0.1.0"
+description = "Export QQ Mail notebook entries to individual Word documents on Windows."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "beautifulsoup4>=4.12,<5",
+    "playwright>=1.49,<2",
+    "python-docx>=1.1,<2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3,<10",
+    "pytest-cov>=6,<8",
+    "ruff>=0.8,<1",
+]
+gui = [
+    "PySide6>=6.8,<7",
+]
+
+[project.scripts]
+qq-notebook-export = "qq_notebook_exporter.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/qq_notebook_exporter"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]
