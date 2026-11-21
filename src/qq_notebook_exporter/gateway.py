@@ -4,8 +4,12 @@ import time
 from typing import Any, Protocol
 from urllib.parse import urlencode
 
-from qq_notebook_exporter.errors import AuthenticationRequiredError, QQMailAPIError
-from qq_notebook_exporter.models import Note, NoteSummary
+from qq_notebook_exporter.errors import (
+    AuthenticationRequiredError,
+    QQMailAPIError,
+    QQMailTransportError,
+)
+from qq_notebook_exporter.models import Note, NoteSummary, parse_timestamp
 
 BASE_URL = "https://wx.mail.qq.com"
 PAGE_SIZE = 40
@@ -32,6 +36,8 @@ class QQMailNotebookGateway:
         *,
         request_delay: float = 0.35,
         page_size: int = PAGE_SIZE,
+        max_retries: int = 2,
+        retry_backoff: float = 0.5,
     ) -> None:
         if not sid.strip():
             raise AuthenticationRequiredError("QQ 邮箱 sid 为空。")
@@ -39,9 +45,12 @@ class QQMailNotebookGateway:
         self.sid = sid.strip()
         self.request_delay = max(0.0, request_delay)
         self.page_size = max(1, min(page_size, PAGE_SIZE))
+        self.max_retries = max(0, max_retries)
+        self.retry_backoff = max(0.0, retry_backoff)
 
     def list_notes(self) -> list[NoteSummary]:
         notes: list[NoteSummary] = []
+        seen_note_ids: set[str] = set()
         offset = 0
 
         while True:
@@ -54,11 +63,26 @@ class QQMailNotebookGateway:
             if not isinstance(infos, list):
                 raise QQMailAPIError("记事本列表字段 infos 格式异常。")
 
-            page_notes = [NoteSummary.from_api(item) for item in infos if isinstance(item, dict)]
-            notes.extend(page_notes)
+            added_this_page = 0
+            for item in infos:
+                if not isinstance(item, dict):
+                    continue
+                try:
+                    summary = NoteSummary.from_api(item)
+                except ValueError:
+                    continue
+                if summary.note_id in seen_note_ids:
+                    continue
+                seen_note_ids.add(summary.note_id)
+                notes.append(summary)
+                added_this_page += 1
 
             total = self._as_int(body.get("total_affected_count"))
-            if not infos or (total is not None and len(notes) >= total):
+            if (
+                not infos
+                or added_this_page == 0
+                or (total is not None and len(notes) >= total)
+            ):
                 break
 
             offset += len(infos)
@@ -97,14 +121,22 @@ class QQMailNotebookGateway:
             content=content,
             category_id=category_id,
             category_name=category_name,
-            created_at=summary.created_at,
-            updated_at=summary.updated_at,
+            created_at=parse_timestamp(body.get("ctime")) or summary.created_at,
+            updated_at=parse_timestamp(body.get("utime")) or summary.updated_at,
         )
 
     def _request(self, path: str, params: dict[str, Any]) -> dict[str, Any]:
         query = {"sid": self.sid, **params}
         url = f"{BASE_URL}{path}?{urlencode(query)}"
-        return self.transport.fetch_json(url)
+        for attempt in range(self.max_retries + 1):
+            try:
+                return self.transport.fetch_json(url)
+            except QQMailTransportError:
+                if attempt >= self.max_retries:
+                    raise
+                if self.retry_backoff:
+                    time.sleep(self.retry_backoff * (2**attempt))
+        raise AssertionError("unreachable")
 
     @staticmethod
     def _checked_body(payload: dict[str, Any]) -> dict[str, Any]:
