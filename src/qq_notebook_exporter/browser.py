@@ -19,17 +19,35 @@ WEBNOTE_ORIGIN = "https://wx.mail.qq.com"
 
 
 def find_sid_in_url(url: str) -> str | None:
+    candidates = find_sid_candidates_in_url(url)
+    return candidates[0] if candidates else None
+
+
+def find_sid_candidates_in_url(url: str) -> list[str]:
     parsed = urlparse(url)
+    candidates: list[str] = []
     for component in (parsed.query, parsed.fragment):
         params = parse_qs(component)
         for key in ("sid", "SID", "Sid"):
             values = params.get(key)
-            if values and values[0].strip():
-                return values[0].strip()
-    return None
+            for value in values or []:
+                cleaned = value.strip()
+                if cleaned and cleaned not in candidates:
+                    candidates.append(cleaned)
+    return candidates
 
 
 def find_sid_in_cookies(cookies: Iterable[Mapping[str, Any]]) -> str | None:
+    candidates = find_sid_candidates_in_cookies(cookies)
+    return candidates[0] if candidates else None
+
+
+def find_sid_candidates_in_cookies(
+    cookies: Iterable[Mapping[str, Any]],
+    *,
+    now: float | None = None,
+) -> list[str]:
+    current_time = time.time() if now is None else now
     candidates: list[tuple[int, float, str]] = []
     for cookie in cookies:
         if str(cookie.get("name", "")).lower() != "sid":
@@ -53,16 +71,29 @@ def find_sid_in_cookies(cookies: Iterable[Mapping[str, Any]]) -> str | None:
             expires = float(cookie.get("expires") or 0)
         except (TypeError, ValueError):
             expires = 0.0
+        if 0 < expires < current_time:
+            continue
         candidates.append((domain_priority, expires, value))
 
-    if not candidates:
-        return None
-    return max(candidates, key=lambda item: (item[0], item[1]))[2]
+    ordered = sorted(candidates, key=lambda item: (item[0], item[1]), reverse=True)
+    result: list[str] = []
+    for _, _, value in ordered:
+        if value not in result:
+            result.append(value)
+    return result
+
+
+def _unique_values(values: Iterable[str]) -> list[str]:
+    result: list[str] = []
+    for value in values:
+        if value and value not in result:
+            result.append(value)
+    return result
 
 
 def wait_for_valid_sid(
     *,
-    find_sid: Callable[[], str | None],
+    find_sids: Callable[[], list[str]],
     validate_sid: Callable[[str], None],
     timeout_seconds: int,
     interval_seconds: float = 1.0,
@@ -71,17 +102,18 @@ def wait_for_valid_sid(
 ) -> str:
     deadline = monotonic() + timeout_seconds
     last_error: AuthenticationRequiredError | None = None
-    rejected_sid: str | None = None
+    rejected_sids: set[str] = set()
 
     while monotonic() < deadline:
-        sid = find_sid()
-        if sid and sid != rejected_sid:
+        for sid in find_sids():
+            if sid in rejected_sids:
+                continue
             try:
                 validate_sid(sid)
                 return sid
             except AuthenticationRequiredError as exc:
                 last_error = exc
-                rejected_sid = sid
+                rejected_sids.add(sid)
 
         sleep(interval_seconds)
 
@@ -174,15 +206,18 @@ class BrowserSession:
             raise BrowserLaunchError(f"无法打开页面: {url}") from exc
 
     def find_sid(self) -> str | None:
+        candidates = self.find_sids()
+        return candidates[0] if candidates else None
+
+    def find_sids(self) -> list[str]:
         if self._context is None:
-            return None
+            return []
 
+        candidates: list[str] = []
         if self.page is not None:
-            url_sid = find_sid_in_url(self.page.url)
-            if url_sid:
-                return url_sid
-
-        return find_sid_in_cookies(self._context.cookies())
+            candidates.extend(find_sid_candidates_in_url(self.page.url))
+        candidates.extend(find_sid_candidates_in_cookies(self._context.cookies()))
+        return _unique_values(candidates)
 
     def wait_for_sid(self, timeout_seconds: int, interval_seconds: float = 1.0) -> str:
         deadline = time.monotonic() + timeout_seconds
@@ -203,7 +238,7 @@ class BrowserSession:
         interval_seconds: float = 1.0,
     ) -> str:
         return wait_for_valid_sid(
-            find_sid=self.find_sid,
+            find_sids=self.find_sids,
             validate_sid=validator,
             timeout_seconds=timeout_seconds,
             interval_seconds=interval_seconds,

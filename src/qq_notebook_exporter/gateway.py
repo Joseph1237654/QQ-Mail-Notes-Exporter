@@ -100,14 +100,16 @@ class QQMailNotebookGateway:
         payload = self._request("/webnote/read", {"noteid": summary.note_id})
         body = self._checked_body(payload)
 
-        content = ""
+        content: str | None = None
         for key in ("content", "note_content", "html", "text", "body"):
             value = body.get(key)
-            if isinstance(value, str) and value:
+            if isinstance(value, str):
                 content = value
                 break
-        if not content:
-            content = summary.digest
+        if content is None:
+            raise QQMailAPIError(
+                f"笔记 {summary.note_id} 的完整正文缺失，拒绝使用摘要导出。"
+            )
 
         subject = str(body.get("subject") or summary.subject).strip()
         category_id = self._as_int(body.get("cataid"))

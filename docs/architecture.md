@@ -8,7 +8,7 @@
 ## 数据流
 
 ```text
-CLI（当前） / PySide6 桌面界面（后续）
+CLI / PySide6 桌面界面
   -> BrowserSession
        -> 持久化 Edge 用户目录
        -> 在 qq.com 页面上下文执行 fetch
@@ -39,7 +39,7 @@ QQ 接口。这样可以用离线测试稳定核心逻辑，同时让 Windows �
 | `docx_exporter.py` | Word 文档渲染 | 网络请求 |
 | `workflow.py` | 批量执行、失败隔离、统计 | 用户界面 |
 | `cli.py` | 参数解析、进度和错误展示 | 网络细节 |
-| `desktop/`（后续） | Windows 窗口、进度、目录选择 | 网络和 Word 细节 |
+| `desktop/` | Windows 窗口、后台任务、进度、目录选择 | 网络协议和 Word 细节 |
 
 ## 登录态
 
@@ -79,6 +79,6 @@ QQ 接口。这样可以用离线测试稳定核心逻辑，同时让 Windows �
 
 ## Windows 交付
 
-桌面版计划使用 PySide6。后台导出任务通过线程或 Qt 信号更新界面，避免阻塞窗口；
+桌面版使用 PySide6。后台导出任务通过 QThread 和 Qt 信号更新界面，避免阻塞窗口；
 发布版使用 PyInstaller 生成单目录应用，包含 Playwright、PySide6 和 Word 写库所需运行时，
 并继续使用 Windows 自带的 Edge。安装包阶段使用 Inno Setup 或 MSIX。
