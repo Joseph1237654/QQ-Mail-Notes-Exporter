@@ -67,6 +67,11 @@ class QQMailNotebookGateway:
 
         return notes
 
+    def validate_session(self) -> int:
+        payload = self._request("/webnote/list", {"offset": 0, "limit": 1})
+        body = self._checked_body(payload)
+        return self._as_int(body.get("total_affected_count")) or 0
+
     def read_note(self, summary: NoteSummary) -> Note:
         payload = self._request("/webnote/read", {"noteid": summary.note_id})
         body = self._checked_body(payload)
