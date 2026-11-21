@@ -1,0 +1,34 @@
+{
+  "head": {
+    "ret": 0,
+    "cgi": "xmnotelogicsvr/list",
+    "time": 1760000000
+  },
+  "body": {
+    "total_affected_count": 2,
+    "infos": [
+      {
+        "noteid": "_1001",
+        "subject": "示例笔记一",
+        "digest": "脱敏摘要",
+        "cataid": 2,
+        "cata_name": "工作",
+        "is_star": 0,
+        "ctime": 1759900000,
+        "utime": 1759950000,
+        "size": 42
+      },
+      {
+        "noteid": "_1002",
+        "subject": "",
+        "digest": "无标题示例",
+        "cataid": 1,
+        "cata_name": "默认笔记",
+        "is_star": 1,
+        "ctime": 1759910000,
+        "utime": 1759960000,
+        "size": 18
+      }
+    ]
+  }
+}

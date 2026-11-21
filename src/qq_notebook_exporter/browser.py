@@ -11,6 +11,7 @@ from qq_notebook_exporter.errors import (
     AuthenticationRequiredError,
     BrowserLaunchError,
     QQMailAPIError,
+    QQMailTransportError,
 )
 
 LOGIN_URL = "https://mail.qq.com/"
@@ -215,28 +216,33 @@ class BrowserSession:
         if not self.page.url.startswith(WEBNOTE_ORIGIN):
             self.goto(f"{WEBNOTE_ORIGIN}/")
 
-        result = self.page.evaluate(
-            """
-            async ({ url }) => {
-                const response = await fetch(url, {
-                    method: "GET",
-                    credentials: "include",
-                    headers: { "Accept": "application/json" }
-                });
-                return {
-                    status: response.status,
-                    text: await response.text()
-                };
-            }
-            """,
-            {"url": url},
-        )
+        try:
+            result = self.page.evaluate(
+                """
+                async ({ url }) => {
+                    const response = await fetch(url, {
+                        method: "GET",
+                        credentials: "include",
+                        headers: { "Accept": "application/json" }
+                    });
+                    return {
+                        status: response.status,
+                        text: await response.text()
+                    };
+                }
+                """,
+                {"url": url},
+            )
+        except Exception as exc:
+            raise QQMailTransportError("QQ 记事本接口请求失败，可稍后重试。") from exc
 
         if not isinstance(result, dict):
             raise QQMailAPIError("页面内请求没有返回有效结果。")
 
         status = int(result.get("status", 0))
         text = str(result.get("text", "")).lstrip("\ufeff")
+        if status == 429 or status >= 500:
+            raise QQMailTransportError(f"QQ 记事本接口暂时不可用: HTTP {status}")
         if status >= 400:
             raise QQMailAPIError(f"QQ 记事本接口 HTTP 状态异常: {status}")
 
