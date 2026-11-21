@@ -6,7 +6,11 @@ from typing import Any
 
 import pytest
 
-from qq_notebook_exporter.errors import AuthenticationRequiredError, QQMailTransportError
+from qq_notebook_exporter.errors import (
+    AuthenticationRequiredError,
+    QQMailAPIError,
+    QQMailTransportError,
+)
 from qq_notebook_exporter.gateway import QQMailNotebookGateway
 from qq_notebook_exporter.models import NoteSummary
 
@@ -127,6 +131,37 @@ def test_read_note_uses_fixture_metadata() -> None:
     assert note.subject == "示例笔记一"
     assert note.content.startswith("<p>脱敏正文</p>")
     assert note.updated_at is not None
+
+
+def test_read_note_rejects_missing_full_content() -> None:
+    transport = FakeTransport(
+        {
+            "/webnote/read": {
+                "head": {"ret": 0},
+                "body": {"noteid": "_7", "subject": "只有摘要"},
+            }
+        }
+    )
+    gateway = QQMailNotebookGateway(transport, "sid-value", request_delay=0)
+
+    with pytest.raises(QQMailAPIError, match="拒绝使用摘要导出"):
+        gateway.read_note(NoteSummary(note_id="_7", subject="标题", digest="预览摘要"))
+
+
+def test_read_note_accepts_explicit_empty_content() -> None:
+    transport = FakeTransport(
+        {
+            "/webnote/read": {
+                "head": {"ret": 0},
+                "body": {"noteid": "_7", "subject": "空笔记", "content": ""},
+            }
+        }
+    )
+    gateway = QQMailNotebookGateway(transport, "sid-value", request_delay=0)
+
+    note = gateway.read_note(NoteSummary(note_id="_7", subject="标题"))
+
+    assert note.content == ""
 
 
 def test_expired_sid_raises_authentication_error() -> None:

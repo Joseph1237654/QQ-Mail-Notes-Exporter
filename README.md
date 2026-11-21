@@ -30,7 +30,7 @@
 py -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-python -m pip install -e ".[dev]"
+python -m pip install -e ".[dev,gui]"
 ```
 
 默认使用系统已安装的 Microsoft Edge。若改用 Playwright 自带的 Chromium：
@@ -71,6 +71,14 @@ qq-notebook-export export --delay 0.5
 qq-notebook-export export --profile D:\qq-mail-profile
 ```
 
+启动 Windows 桌面版：
+
+```powershell
+qq-notebook-desktop
+```
+
+桌面版使用黑白灰极简界面，提供登录、目录选择、导出进度、成功/失败计数和活动日志。
+
 导出结果示例：
 
 ```text
@@ -104,6 +112,7 @@ src/qq_notebook_exporter/
   docx_exporter.py   # HTML 到 Word 渲染
   workflow.py        # 批量导出编排
   cli.py             # 命令行入口
+  desktop/            # PySide6 桌面界面与后台任务
 tests/               # 离线单元测试
 docs/                # 架构与 PR 路线
 ```
@@ -116,8 +125,7 @@ docs/                # 架构与 PR 路线
 - QQ 邮箱接口没有公开稳定性承诺，接口字段变化时需要在 `gateway.py` 中更新适配。
 - `sid` 失效后需要重新执行 `login`。
 - 首版 Word 转换覆盖常见段落、标题、列表、引用、代码块和简单表格；复杂富文本会在后续 PR 中增强。
-- 当前基础架构只提供命令行界面；Windows 图形界面在后续独立 PR 中实现，目标框架为
-  PySide6。
+- 桌面界面使用 PySide6；正式安装包仍在后续 PR 中完成。
 
 ## 开发
 

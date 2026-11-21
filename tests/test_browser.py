@@ -1,6 +1,8 @@
 import pytest
 
 from qq_notebook_exporter.browser import (
+    find_sid_candidates_in_cookies,
+    find_sid_candidates_in_url,
     find_sid_in_cookies,
     find_sid_in_url,
     wait_for_valid_sid,
@@ -14,10 +16,16 @@ def test_find_sid_in_url_query_and_fragment() -> None:
     assert find_sid_in_url("https://wx.mail.qq.com/webnote") is None
 
 
+def test_find_sid_candidates_preserve_all_url_values() -> None:
+    url = "https://wx.mail.qq.com/webnote?sid=first&SID=first#sid=second"
+
+    assert find_sid_candidates_in_url(url) == ["first", "second"]
+
+
 def test_find_sid_in_cookies_prefers_qq_mail_domain() -> None:
     cookies = [
-        {"name": "sid", "value": "generic", "domain": ".qq.com", "expires": 999},
-        {"name": "sid", "value": "mail", "domain": ".mail.qq.com", "expires": 100},
+        {"name": "sid", "value": "generic", "domain": ".qq.com", "expires": 2_000_000_100},
+        {"name": "sid", "value": "mail", "domain": ".mail.qq.com", "expires": 2_000_000_000},
     ]
 
     assert find_sid_in_cookies(cookies) == "mail"
@@ -25,20 +33,29 @@ def test_find_sid_in_cookies_prefers_qq_mail_domain() -> None:
 
 def test_find_sid_in_cookies_uses_latest_expiry_within_same_priority() -> None:
     cookies = [
-        {"name": "SID", "value": "old", "domain": ".qq.com", "expires": 100},
-        {"name": "sid", "value": "new", "domain": ".qq.com", "expires": 200},
+        {"name": "SID", "value": "old", "domain": ".qq.com", "expires": 2_000_000_000},
+        {"name": "sid", "value": "new", "domain": ".qq.com", "expires": 2_000_000_100},
     ]
 
     assert find_sid_in_cookies(cookies) == "new"
     assert find_sid_in_cookies([]) is None
 
 
+def test_find_sid_candidates_skip_rejected_expired_cookie() -> None:
+    cookies = [
+        {"name": "sid", "value": "expired", "domain": ".mail.qq.com", "expires": 50},
+        {"name": "sid", "value": "fresh", "domain": ".qq.com", "expires": 200},
+    ]
+
+    assert find_sid_candidates_in_cookies(cookies, now=100) == ["fresh"]
+
+
 def test_wait_for_valid_sid_retries_stale_session() -> None:
-    candidates = iter(["stale", "stale", "fresh"])
+    candidate_sets = iter([["stale", "fresh"], ["stale", "fresh"]])
     attempts: list[str] = []
 
-    def find_sid() -> str | None:
-        return next(candidates, None)
+    def find_sids() -> list[str]:
+        return next(candidate_sets, [])
 
     def validate_sid(sid: str) -> None:
         attempts.append(sid)
@@ -46,7 +63,7 @@ def test_wait_for_valid_sid_retries_stale_session() -> None:
             raise AuthenticationRequiredError("expired")
 
     sid = wait_for_valid_sid(
-        find_sid=find_sid,
+        find_sids=find_sids,
         validate_sid=validate_sid,
         timeout_seconds=1,
         interval_seconds=0,
@@ -60,7 +77,7 @@ def test_wait_for_valid_sid_retries_stale_session() -> None:
 def test_wait_for_valid_sid_raises_after_timeout() -> None:
     with pytest.raises(AuthenticationRequiredError, match="未检测到可用"):
         wait_for_valid_sid(
-            find_sid=lambda: None,
+            find_sids=lambda: [],
             validate_sid=lambda _: None,
             timeout_seconds=0,
         )
