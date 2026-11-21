@@ -82,7 +82,7 @@ def _settings_from_args(args: argparse.Namespace) -> Settings:
 def _run_login(args: argparse.Namespace, settings: Settings) -> int:
     print("正在打开 Microsoft Edge。")
     print("请在浏览器中登录 QQ 邮箱，并进入记事本。")
-    print("工具检测到 sid 后会自动完成登录。")
+    print("工具检测到 sid 后还会调用接口验证登录是否真实可用。")
 
     with BrowserSession(
         settings.profile_dir,
@@ -91,8 +91,14 @@ def _run_login(args: argparse.Namespace, settings: Settings) -> int:
         timeout_ms=settings.page_timeout_ms,
     ) as session:
         session.goto(LOGIN_URL)
-        sid = session.wait_for_sid(settings.login_timeout)
-        print(f"登录态已保存，sid 前缀: {sid[:12]}...")
+
+        def validate_sid(sid: str) -> None:
+            gateway = QQMailNotebookGateway(session, sid, request_delay=0)
+            total = gateway.validate_session()
+            print(f"登录态验证通过，当前可读取记事本 {total} 条。")
+
+        session.wait_for_valid_sid(settings.login_timeout, validate_sid)
+        print("登录态已保存。")
     return 0
 
 

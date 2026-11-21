@@ -54,7 +54,8 @@ qq-notebook-export doctor
 qq-notebook-export login
 ```
 
-请在弹出的 Edge 窗口中完成 QQ 邮箱登录，并进入记事本。工具检测到 `sid` 登录态后会自动结束登录命令。
+请在弹出的 Edge 窗口中完成 QQ 邮箱登录，并进入记事本。工具检测到 `sid` 后还会调用
+记事本接口验证登录态是否真实可用，并显示当前可读取的笔记数量。
 
 批量导出：
 
