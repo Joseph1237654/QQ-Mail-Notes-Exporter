@@ -1,0 +1,16 @@
+{
+  "head": {
+    "ret": 0,
+    "cgi": "xmnotelogicsvr/read",
+    "time": 1760000000
+  },
+  "body": {
+    "noteid": "_1001",
+    "subject": "示例笔记一",
+    "content": "<p>脱敏正文</p><ul><li>第一项</li><li>第二项</li></ul>",
+    "cataid": 2,
+    "cata_name": "工作",
+    "ctime": 1759900000,
+    "utime": 1759950000
+  }
+}
