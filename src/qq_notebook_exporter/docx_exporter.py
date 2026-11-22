@@ -46,6 +46,7 @@ BLOCK_TAGS = CONTAINER_TAGS | set(HEADING_TAGS) | {
 SKIPPED_TAGS = {"script", "style", "meta", "link"}
 WORD_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 MARKUP_COMPATIBILITY_NS = "http://schemas.openxmlformats.org/markup-compatibility/2006"
+MARKDOWN_LINK = re.compile(r"^!?\[[^\]]*\]\(\s*<?([^)\s>]+)>?\s*\)$")
 ImageFetcher = Callable[[str], bytes]
 ImageLoader = Callable[[str], bytes]
 
@@ -310,12 +311,21 @@ def _append_inline(
         paragraph.add_run().add_break()
         return
     if name == "img":
-        source = _image_source(node)
-        if not source:
+        sources = _image_sources(node)
+        if not sources:
             raise ExportError("笔记包含没有地址的图片，无法完整导出。")
-        blob = image_loader(source)
-        _add_inline_picture(paragraph, blob)
-        return
+        last_error: ExportError | None = None
+        for source in sources:
+            try:
+                blob = image_loader(source)
+            except ExportError as exc:
+                last_error = exc
+                continue
+            _add_inline_picture(paragraph, blob)
+            return
+        if last_error is not None:
+            raise last_error
+        raise ExportError("笔记包含没有可用地址的图片，无法完整导出。")
 
     next_bold = bold or name in {"b", "strong"}
     next_italic = italic or name in {"i", "em"}
@@ -359,15 +369,24 @@ def _walk_list(
             _walk_list(document, nested, image_loader, level + 1)
 
 
-def _image_source(node: Tag) -> str:
+def _image_sources(node: Tag) -> list[str]:
+    sources: list[str] = []
     for attribute in ("data-original", "data-src", "data-lazy-src", "src"):
         value = node.get(attribute)
         if value is None:
             continue
-        source = str(value).strip()
-        if source:
-            return source
-    return ""
+        source = _normalize_image_source(str(value))
+        if source and source not in sources:
+            sources.append(source)
+    return sources
+
+
+def _normalize_image_source(value: str) -> str:
+    source = value.strip().replace("\\&", "&")
+    match = MARKDOWN_LINK.fullmatch(source)
+    if match is not None:
+        source = match.group(1).strip().replace("\\&", "&")
+    return source
 
 
 def _add_inline_picture(paragraph: Any, blob: bytes) -> None:
