@@ -32,7 +32,7 @@ class Settings:
     profile_dir: Path = field(default_factory=default_profile_dir)
     browser_channel: str | None = "msedge"
     headless: bool = False
-    request_delay: float = 1.25
+    request_delay: float = 0.35
     login_timeout: int = 600
     page_timeout_ms: int = 45_000
 

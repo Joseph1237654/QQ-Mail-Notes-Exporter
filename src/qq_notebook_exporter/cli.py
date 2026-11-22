@@ -43,7 +43,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--delay",
         type=float,
         default=None,
-        help="接口请求最小间隔秒数，默认 1.25",
+        help="接口请求最小间隔秒数，默认 0.35",
     )
     export.add_argument("--headless", action="store_true", help="无头运行，不推荐")
 

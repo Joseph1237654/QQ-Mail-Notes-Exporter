@@ -36,7 +36,7 @@ class QQMailNotebookGateway:
         transport: JsonTransport,
         sid: str,
         *,
-        request_delay: float = 1.25,
+        request_delay: float = 0.35,
         page_size: int = PAGE_SIZE,
         max_retries: int = 4,
         retry_backoff: float = 0.5,
@@ -161,6 +161,7 @@ class QQMailNotebookGateway:
             except QQMailRateLimitError:
                 if attempt >= self.max_retries:
                     raise
+                self._slow_down_after_rate_limit()
                 if self.rate_limit_backoff:
                     time.sleep(self.rate_limit_backoff * (2**attempt))
             except QQMailTransportError:
@@ -179,6 +180,11 @@ class QQMailNotebookGateway:
             if remaining > 0:
                 time.sleep(remaining)
         self._last_request_at = time.monotonic()
+
+    def _slow_down_after_rate_limit(self) -> None:
+        if self.request_delay <= 0:
+            return
+        self.request_delay = min(max(self.request_delay * 2, 0.75), 2.0)
 
     @staticmethod
     def _checked_body(payload: dict[str, Any]) -> dict[str, Any]:

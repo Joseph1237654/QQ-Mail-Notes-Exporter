@@ -382,6 +382,22 @@ def test_rate_limit_response_is_retried() -> None:
     assert transport.calls == 2
 
 
+def test_rate_limit_increases_request_delay(monkeypatch) -> None:
+    monkeypatch.setattr("qq_notebook_exporter.gateway.time.sleep", lambda _: None)
+    monkeypatch.setattr("qq_notebook_exporter.gateway.time.monotonic", lambda: 0.0)
+    transport = RateLimitThenSuccessTransport()
+    gateway = QQMailNotebookGateway(
+        transport,
+        "sid-value",
+        request_delay=0.35,
+        max_retries=1,
+        rate_limit_backoff=0,
+    )
+
+    assert gateway.list_notes() == []
+    assert gateway.request_delay == 0.75
+
+
 def test_rate_limit_exhaustion_raises_transport_error() -> None:
     class AlwaysRateLimited:
         def post_form_json(self, url: str, data: dict[str, Any]) -> dict[str, Any]:

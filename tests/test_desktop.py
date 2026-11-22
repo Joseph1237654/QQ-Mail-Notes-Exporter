@@ -56,9 +56,43 @@ def test_initial_window_state(window) -> None:
     assert window.login_button.isEnabled()
     assert not window.export_button.isEnabled()
     assert window.path_edit.text().endswith("exports")
+    assert window.browse_button.text() == "选择目录"
     logo = window.findChild(qt_widgets.QLabel, "AppIcon")
     assert logo is not None
     assert not logo.pixmap().isNull()
+
+
+def test_directory_picker_updates_output_path(window, monkeypatch, tmp_path) -> None:
+    selected = tmp_path / "selected-output"
+    selected.mkdir()
+    monkeypatch.setattr(
+        qt_widgets.QFileDialog,
+        "getExistingDirectory",
+        lambda *args, **kwargs: str(selected),
+    )
+
+    window._choose_directory()
+
+    assert window.path_edit.text() == str(selected)
+
+
+def test_worker_finished_reenables_directory_selection(window) -> None:
+    class FinishedWorker:
+        def deleteLater(self) -> None:
+            pass
+
+    window._logged_in = True
+    window._set_busy("正在导出")
+    assert not window.browse_button.isEnabled()
+    assert not window.path_edit.isEnabled()
+
+    window._worker = FinishedWorker()
+    window._worker_finished()
+
+    assert window._worker is None
+    assert window.browse_button.isEnabled()
+    assert window.path_edit.isEnabled()
+    assert window.export_button.isEnabled()
 
 
 def test_login_progress_and_export_result(window, app) -> None:

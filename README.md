@@ -68,7 +68,7 @@ qq-notebook-export export --output .\exports
 
 ```powershell
 qq-notebook-export export --limit 5 --overwrite
-qq-notebook-export export --delay 1.25
+qq-notebook-export export --delay 0.35
 qq-notebook-export export --profile D:\qq-mail-profile
 ```
 
@@ -132,8 +132,8 @@ docs/                # 架构与 PR 路线
 
 - QQ 邮箱接口没有公开稳定性承诺，接口字段变化时需要在 `gateway.py` 中更新适配。
 - `sid` 失效后需要重新执行 `login`。
-- 接口有频率限制，默认逐请求间隔为 1.25 秒；调低 `--delay` 可能导致
-  `ret=-20003`。
+- 接口有频率限制，默认逐请求间隔为 0.35 秒；触发 `ret=-20003` 时会自动等待并
+  逐级降低请求速度，调低 `--delay` 仍可能增加限流风险。
 - Word 转换覆盖常见段落、标题、列表、引用、代码块、简单表格和图片；复杂富文本会在
   后续 PR 中增强。
 - 发布文件使用本地自签名证书，SmartScreen 仍可能提示未知发布者；正式发行需要 CA

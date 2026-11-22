@@ -116,7 +116,11 @@ class MainWindow(QMainWindow):
         directory_row.setSpacing(8)
         self.path_edit = QLineEdit(str(self.settings.output_dir))
         self.path_edit.setPlaceholderText("选择 Word 导出目录")
-        self.browse_button = QPushButton("浏览")
+        self.path_edit.setAccessibleName("导出目录")
+        self.path_edit.setClearButtonEnabled(True)
+        self.browse_button = QPushButton("选择目录")
+        self.browse_button.setMinimumWidth(100)
+        self.browse_button.setToolTip("选择 Word 文件的保存位置")
         self.browse_button.clicked.connect(self._choose_directory)
         directory_row.addWidget(self.path_edit, 1)
         directory_row.addWidget(self.browse_button)
@@ -226,6 +230,8 @@ class MainWindow(QMainWindow):
         )
         if directory:
             self.path_edit.setText(directory)
+            self.path_edit.setCursorPosition(0)
+            self.path_edit.setToolTip(directory)
 
     def _start_login(self) -> None:
         if self._worker is not None and self._worker.isRunning():
@@ -250,7 +256,15 @@ class MainWindow(QMainWindow):
             self._append_log("请先完成 QQ 邮箱登录")
             return
 
-        output_dir = Path(self.path_edit.text()).expanduser()
+        path_text = self.path_edit.text().strip()
+        if not path_text:
+            self._choose_directory()
+            path_text = self.path_edit.text().strip()
+        if not path_text:
+            self._show_error("请先选择 Word 导出目录。")
+            return
+
+        output_dir = Path(path_text).expanduser()
         try:
             output_dir.mkdir(parents=True, exist_ok=True)
         except OSError as exc:
@@ -322,6 +336,7 @@ class MainWindow(QMainWindow):
         self._worker = None
         if worker is not None:
             worker.deleteLater()
+        self._apply_idle_state()
 
     def _set_busy(self, status: str) -> None:
         self.header_status.setText(status)
@@ -370,6 +385,8 @@ class MainWindow(QMainWindow):
     def _restore_preferences(self) -> None:
         stored_path = self._preferences.value("output_dir", str(self.settings.output_dir))
         self.path_edit.setText(str(stored_path))
+        self.path_edit.setCursorPosition(0)
+        self.path_edit.setToolTip(str(stored_path))
         geometry = self._preferences.value("geometry")
         if geometry:
             self.restoreGeometry(geometry)
