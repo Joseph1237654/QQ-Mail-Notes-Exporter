@@ -135,4 +135,18 @@ docs/                # 架构与 PR 路线
   `ret=-20003`。
 - Word 转换覆盖常见段落、标题、列表、引用、代码块、简单表格和图片；复杂富文本会在
   后续 PR 中增强。
-- 桌面界面使用 PySide6；正式安装包仍在后续 PR 中完成。
+- 安装包当前未进行代码签名，Windows SmartScreen 可能提示未知发布者。
+
+## Windows 打包
+
+打包使用 PyInstaller 和 Inno Setup，详细步骤与隐私边界见
+[docs/packaging.md](docs/packaging.md)。构建只会收集程序代码和运行资源；
+`exports/`、浏览器配置、日志、DOCX、PDF 和测试产物不会进入软件包。
+
+```powershell
+python -m pip install -e ".[build,gui]"
+python scripts\build_windows.py
+```
+
+便携版输出到 `dist/QQNotebookExporter`。使用 `--installer` 参数并安装 Inno Setup 6
+后，可生成 `release/QQNotebookExporter-Setup-*.exe`。
