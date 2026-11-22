@@ -1,12 +1,18 @@
-# QQ 记事本导出 0.1.0
+# QQ 记事本导出 0.1.1
 
 本目录包含可分发安装包、便携版、自签名公钥证书和 SHA256 校验值。源代码位于仓库
 根目录，本目录不包含任何用户笔记、导出 DOCX、浏览器配置或日志。
 
+## 0.1.1 更新
+
+- 修复 QQ 笔记图片地址被 Markdown 链接包裹时无法导出的问题。
+- 图片下载失败时依次尝试笔记中的备用图片地址。
+- 更换应用图标。
+
 ## 文件
 
-- `QQNotebookExporter-Setup-0.1.0.exe`：Windows 安装程序。
-- `QQNotebookExporter-Portable-0.1.0.zip`：解压后双击
+- `QQNotebookExporter-Setup-0.1.1.exe`：Windows 安装程序。
+- `QQNotebookExporter-Portable-0.1.1.zip`：解压后双击
   `QQNotebookExporter.exe` 运行。
 - `QQNotebookExporter-LocalSigning.cer`：用于验证发布文件签名的自签名公钥证书。
 - `SHA256SUMS.txt`：发布文件校验值。
@@ -23,15 +29,15 @@ Windows SmartScreen 仍可能显示“未知发布者”。
 查看签名状态：
 
 ```powershell
-Get-AuthenticodeSignature .\QQNotebookExporter-Setup-0.1.0.exe |
+Get-AuthenticodeSignature .\QQNotebookExporter-Setup-0.1.1.exe |
     Format-List Status, StatusMessage, SignerCertificate, TimeStamperCertificate
 ```
 
 校验 SHA256：
 
 ```powershell
-Get-FileHash .\QQNotebookExporter-Setup-0.1.0.exe -Algorithm SHA256
-Get-FileHash .\QQNotebookExporter-Portable-0.1.0.zip -Algorithm SHA256
+Get-FileHash .\QQNotebookExporter-Setup-0.1.1.exe -Algorithm SHA256
+Get-FileHash .\QQNotebookExporter-Portable-0.1.1.zip -Algorithm SHA256
 ```
 
 ## 隐私边界
