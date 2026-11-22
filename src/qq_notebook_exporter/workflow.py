@@ -53,6 +53,15 @@ class ExportService:
 
         report = ExportReport(total=len(summaries))
         for index, summary in enumerate(summaries, start=1):
+            if not overwrite and self.exporter.has_valid_output(
+                output_dir,
+                summary.display_title,
+                summary.note_id,
+            ):
+                report.skipped += 1
+                if progress is not None:
+                    progress(index, len(summaries), summary, "已存在")
+                continue
             try:
                 note = self.source.read_note(summary)
                 outcome = self.exporter.export_note(

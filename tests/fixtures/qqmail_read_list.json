@@ -1,0 +1,22 @@
+{
+  "head": {
+    "ret": 0,
+    "cgi": "xmnotelogicsvr/read",
+    "time": 1760000000
+  },
+  "body": {
+    "list": [
+      {
+        "noteid": "_1001",
+        "subject": "列表示例",
+        "content": "<p>脱敏正文</p><p>第二段</p>",
+        "cataid": 2,
+        "cata_name": "工作",
+        "ctime": 1759900000,
+        "utime": 1759950000,
+        "content_seq": 1759950000,
+        "size": 42
+      }
+    ]
+  }
+}

@@ -4,6 +4,7 @@ import sys
 
 from PySide6.QtWidgets import QApplication
 
+from qq_notebook_exporter.desktop.icon import load_app_icon
 from qq_notebook_exporter.desktop.main_window import MainWindow
 from qq_notebook_exporter.desktop.style import APP_STYLE
 
@@ -14,6 +15,7 @@ def main() -> int:
     app.setOrganizationName("QQNotebookExporter")
     app.setStyle("Fusion")
     app.setStyleSheet(APP_STYLE)
+    app.setWindowIcon(load_app_icon())
 
     window = MainWindow()
     window.show()

@@ -39,7 +39,12 @@ def build_parser() -> argparse.ArgumentParser:
     export.add_argument("--output", type=Path, default=None, help="Word 输出目录")
     export.add_argument("--limit", type=int, default=None, help="仅导出前 N 条")
     export.add_argument("--overwrite", action="store_true", help="覆盖已存在的文件")
-    export.add_argument("--delay", type=float, default=None, help="分页请求间隔秒数")
+    export.add_argument(
+        "--delay",
+        type=float,
+        default=None,
+        help="接口请求最小间隔秒数，默认 1.25",
+    )
     export.add_argument("--headless", action="store_true", help="无头运行，不推荐")
 
     doctor = subparsers.add_parser("doctor", help="检查本地运行环境")
@@ -95,7 +100,7 @@ def _run_login(args: argparse.Namespace, settings: Settings) -> int:
         def validate_sid(sid: str) -> None:
             gateway = QQMailNotebookGateway(session, sid, request_delay=0)
             total = gateway.validate_session()
-            print(f"登录态验证通过，当前可读取记事本 {total} 条。")
+            print(f"登录态验证通过，首屏可读取记事本 {total} 条。")
 
         session.wait_for_valid_sid(settings.login_timeout, validate_sid)
         print("登录态已保存。")
@@ -119,7 +124,7 @@ def _run_export(args: argparse.Namespace, settings: Settings) -> int:
             sid,
             request_delay=settings.request_delay,
         )
-        service = ExportService(gateway, DocxExporter())
+        service = ExportService(gateway, DocxExporter(session.fetch_binary))
 
         print("正在读取记事本列表...")
         report = service.run(

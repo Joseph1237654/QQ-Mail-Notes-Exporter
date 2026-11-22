@@ -5,7 +5,7 @@ import time
 from collections.abc import Callable, Iterable, Mapping
 from pathlib import Path
 from typing import Any
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, urljoin, urlparse
 
 from qq_notebook_exporter.errors import (
     AuthenticationRequiredError,
@@ -271,6 +271,75 @@ class BrowserSession:
         except Exception as exc:
             raise QQMailTransportError("QQ 记事本接口请求失败，可稍后重试。") from exc
 
+        return self._parse_json_result(result)
+
+    def post_form_json(self, url: str, data: Mapping[str, Any]) -> dict[str, Any]:
+        if self.page is None:
+            raise BrowserLaunchError("浏览器页面尚未初始化。")
+
+        if not self.page.url.startswith(WEBNOTE_ORIGIN):
+            self.goto(f"{WEBNOTE_ORIGIN}/")
+
+        try:
+            result = self.page.evaluate(
+                """
+                async ({ url, data }) => {
+                    const body = new URLSearchParams();
+                    for (const [key, value] of Object.entries(data)) {
+                        body.set(key, String(value));
+                    }
+                    const response = await fetch(url, {
+                        method: "POST",
+                        credentials: "include",
+                        headers: {
+                            "Accept": "application/json",
+                            "Content-Type": "application/x-www-form-urlencoded"
+                        },
+                        body: body.toString()
+                    });
+                    return {
+                        status: response.status,
+                        text: await response.text()
+                    };
+                }
+                """,
+                {"url": url, "data": dict(data)},
+            )
+        except Exception as exc:
+            raise QQMailTransportError("QQ 记事本接口请求失败，可稍后重试。") from exc
+
+        return self._parse_json_result(result)
+
+    def fetch_binary(self, url: str) -> bytes:
+        if self._context is None:
+            raise BrowserLaunchError("浏览器页面尚未初始化。")
+
+        absolute_url = urljoin(f"{WEBNOTE_ORIGIN}/", url)
+        try:
+            response = self._context.request.get(
+                absolute_url,
+                headers={
+                    "Accept": "image/avif,image/webp,image/png,image/jpeg,image/gif,*/*",
+                    "Referer": f"{WEBNOTE_ORIGIN}/",
+                },
+                timeout=self.timeout_ms,
+            )
+            if not response.ok:
+                raise QQMailTransportError(
+                    f"图片请求失败: HTTP {response.status} {absolute_url}"
+                )
+            body = response.body()
+        except QQMailTransportError:
+            raise
+        except Exception as exc:
+            raise QQMailTransportError(f"图片请求失败: {absolute_url}") from exc
+
+        if not body:
+            raise QQMailTransportError(f"图片响应为空: {absolute_url}")
+        return body
+
+    @staticmethod
+    def _parse_json_result(result: Any) -> dict[str, Any]:
         if not isinstance(result, dict):
             raise QQMailAPIError("页面内请求没有返回有效结果。")
 
