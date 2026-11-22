@@ -5,3 +5,5 @@
 *.png binary
 *.ico binary
 *.exe binary
+*.zip binary
+*.cer binary

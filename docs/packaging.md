@@ -55,4 +55,17 @@ python scripts\build_windows.py --installer
 2. 运行 `packaging/verify_release.py` 检查发布目录。
 3. 在未安装 Python 的 Windows 11 机器上安装并启动程序。
 4. 手动完成 QQ 邮箱登录、单条导出和图片完整性检查。
-5. 不把 `exports/`、`dist/`、`release/` 或浏览器配置作为源码提交。
+5. 不把 `exports/`、`dist/` 或浏览器配置作为源码提交；`release/` 只允许发布说明、
+   公钥证书、校验值、便携 ZIP 和安装程序。
+
+## 代码签名
+
+正式签名需要 CA 颁发的代码签名证书及其私钥。证书应安装在当前用户的
+`Cert:\CurrentUser\My` 中，私钥不得导出到仓库。
+
+```powershell
+.\packaging\sign_release.ps1 -CertificateThumbprint "<SHA1-THUMBPRINT>"
+```
+
+仓库中的 `release/` 若包含自签名公钥证书，只代表可以验证文件完整性，不代表
+Windows SmartScreen 会将其视为受信任发布者。
