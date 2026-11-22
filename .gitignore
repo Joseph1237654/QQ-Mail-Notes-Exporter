@@ -8,6 +8,8 @@ __pycache__/
 htmlcov/
 build/
 dist/
+release/
+artifacts/
 
 # Environments
 .venv/
@@ -17,6 +19,9 @@ venv/
 exports/
 .qq-notebook-exporter/
 *.log
+*.docx
+*.pdf
+*.tmp
 
 # IDE and OS files
 .idea/
