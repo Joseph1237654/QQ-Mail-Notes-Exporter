@@ -26,6 +26,7 @@ gui = [
 
 [project.scripts]
 qq-notebook-export = "qq_notebook_exporter.cli:main"
+qq-notebook-desktop = "qq_notebook_exporter.desktop.app:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/qq_notebook_exporter"]
