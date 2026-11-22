@@ -7,6 +7,7 @@ class FakeSource:
     def __init__(self, notes: list[Note], failing_ids: set[str] | None = None) -> None:
         self.notes = notes
         self.failing_ids = failing_ids or set()
+        self.read_calls = 0
 
     def list_notes(self) -> list[NoteSummary]:
         return [
@@ -15,6 +16,7 @@ class FakeSource:
         ]
 
     def read_note(self, summary: NoteSummary) -> Note:
+        self.read_calls += 1
         if summary.note_id in self.failing_ids:
             raise RuntimeError("read failed")
         return next(note for note in self.notes if note.note_id == summary.note_id)
@@ -52,3 +54,16 @@ def test_export_service_respects_limit(tmp_path) -> None:
     assert report.total == 1
     assert report.exported == 1
     assert len(list(tmp_path.glob("*.docx"))) == 1
+
+
+def test_export_service_skips_existing_before_reading_note(tmp_path) -> None:
+    source = FakeSource([Note(note_id="_1", subject="第一条", content="正文")])
+    exporter = DocxExporter()
+    service = ExportService(source, exporter)
+
+    assert service.run(tmp_path).exported == 1
+    source.read_calls = 0
+    report = service.run(tmp_path)
+
+    assert report.skipped == 1
+    assert source.read_calls == 0
