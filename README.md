@@ -146,3 +146,17 @@ pytest
 
 每次迭代建议从 `main` 建立单一主题分支，测试通过后提交 PR。具体规范见
 [CONTRIBUTING.md](CONTRIBUTING.md)。
+
+## Windows 打包
+
+打包使用 PyInstaller 和 Inno Setup，详细步骤与隐私边界见
+[docs/packaging.md](docs/packaging.md)。构建只会收集程序代码和运行资源；
+`exports/`、浏览器配置、日志、DOCX、PDF 和测试产物不会进入软件包。
+
+```powershell
+python -m pip install -e ".[build,gui]"
+python scripts\build_windows.py
+```
+
+便携版输出到 `dist/QQNotebookExporter`。使用 `--installer` 参数并安装 Inno Setup 6
+后，可生成 `release/QQNotebookExporter-Setup-*.exe`。
