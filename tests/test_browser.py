@@ -1,13 +1,16 @@
+from types import SimpleNamespace
+
 import pytest
 
 from qq_notebook_exporter.browser import (
+    BrowserSession,
     find_sid_candidates_in_cookies,
     find_sid_candidates_in_url,
     find_sid_in_cookies,
     find_sid_in_url,
     wait_for_valid_sid,
 )
-from qq_notebook_exporter.errors import AuthenticationRequiredError
+from qq_notebook_exporter.errors import AuthenticationRequiredError, QQMailTransportError
 
 
 def test_find_sid_in_url_query_and_fragment() -> None:
@@ -81,3 +84,47 @@ def test_wait_for_valid_sid_raises_after_timeout() -> None:
             validate_sid=lambda _: None,
             timeout_seconds=0,
         )
+
+
+def test_fetch_binary_uses_context_request_and_preserves_body(tmp_path) -> None:
+    calls: list[tuple[str, dict]] = []
+
+    class Response:
+        ok = True
+        status = 200
+
+        @staticmethod
+        def body() -> bytes:
+            return b"original-image-bytes"
+
+    class Request:
+        @staticmethod
+        def get(url: str, **kwargs) -> Response:
+            calls.append((url, kwargs))
+            return Response()
+
+    session = BrowserSession(tmp_path)
+    session._context = SimpleNamespace(request=Request())
+
+    result = session.fetch_binary("//cdn.example.test/photo.jpg")
+
+    assert result == b"original-image-bytes"
+    assert calls[0][0] == "https://cdn.example.test/photo.jpg"
+    assert calls[0][1]["headers"]["Referer"] == "https://wx.mail.qq.com/"
+
+
+def test_fetch_binary_rejects_failed_response(tmp_path) -> None:
+    class Response:
+        ok = False
+        status = 403
+
+    class Request:
+        @staticmethod
+        def get(_url: str, **_kwargs) -> Response:
+            return Response()
+
+    session = BrowserSession(tmp_path)
+    session._context = SimpleNamespace(request=Request())
+
+    with pytest.raises(QQMailTransportError, match="HTTP 403"):
+        session.fetch_binary("https://cdn.example.test/photo.jpg")
