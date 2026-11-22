@@ -7,8 +7,9 @@
 
 - 手动登录 QQ 邮箱并使用持久化 Edge 浏览器会话。
 - 在已登录页面上下文内分页读取记事本列表和正文。
-- 一条笔记一个 Word 文件，标题、分类、时间和正文分层写入。
+- 一条笔记一个 Word 文件，标题、分类、时间和正文分层写入，照片按原始字节嵌入。
 - 单条失败隔离，批量导出不会因一条笔记异常而全部中止。
+- 桌面版使用独立应用图标，并保留多尺寸图标资源用于后续安装包。
 - 单元测试、Windows CI、PR 模板和后续迭代路线。
 
 最终交付形态是 Windows 桌面软件：用户通过图形界面完成登录、选择导出目录、查看导出
@@ -55,7 +56,7 @@ qq-notebook-export login
 ```
 
 请在弹出的 Edge 窗口中完成 QQ 邮箱登录，并进入记事本。工具检测到 `sid` 后还会调用
-记事本接口验证登录态是否真实可用，并显示当前可读取的笔记数量。
+记事本接口验证登录态是否真实可用，并显示首屏可读取的笔记数量。
 
 批量导出：
 
@@ -67,7 +68,7 @@ qq-notebook-export export --output .\exports
 
 ```powershell
 qq-notebook-export export --limit 5 --overwrite
-qq-notebook-export export --delay 0.5
+qq-notebook-export export --delay 1.25
 qq-notebook-export export --profile D:\qq-mail-profile
 ```
 
@@ -93,6 +94,10 @@ exports/
 2. 分类、创建时间和修改时间。
 3. QQ 记事本 HTML 转换后的正文。
 
+正文中的照片会先读取原始图片数据，再嵌入 `.docx` 内部；页面只调整显示尺寸，不裁剪、
+不重新编码图片。需要登录态的远程图片通过同一个 Edge 会话获取，获取失败时该条笔记会
+明确报错，不会静默替换成“[图片]”。
+
 ## 命令
 
 | 命令 | 作用 |
@@ -113,6 +118,8 @@ src/qq_notebook_exporter/
   workflow.py        # 批量导出编排
   cli.py             # 命令行入口
   desktop/            # PySide6 桌面界面与后台任务
+  resources/          # 应用 PNG/ICO 图标
+scripts/              # 图标生成等开发辅助脚本
 tests/               # 离线单元测试
 docs/                # 架构与 PR 路线
 ```
@@ -124,7 +131,10 @@ docs/                # 架构与 PR 路线
 
 - QQ 邮箱接口没有公开稳定性承诺，接口字段变化时需要在 `gateway.py` 中更新适配。
 - `sid` 失效后需要重新执行 `login`。
-- 首版 Word 转换覆盖常见段落、标题、列表、引用、代码块和简单表格；复杂富文本会在后续 PR 中增强。
+- 接口有频率限制，默认逐请求间隔为 1.25 秒；调低 `--delay` 可能导致
+  `ret=-20003`。
+- Word 转换覆盖常见段落、标题、列表、引用、代码块、简单表格和图片；复杂富文本会在
+  后续 PR 中增强。
 - 桌面界面使用 PySide6；正式安装包仍在后续 PR 中完成。
 
 ## 开发

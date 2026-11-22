@@ -12,6 +12,7 @@ CLI / PySide6 桌面界面
   -> BrowserSession
        -> 持久化 Edge 用户目录
        -> 在 qq.com 页面上下文执行 fetch
+       -> 按登录态获取笔记图片原始字节
   -> QQMailNotebookGateway
        -> /webnote/list
        -> /webnote/read
@@ -32,11 +33,11 @@ QQ 接口。这样可以用离线测试稳定核心逻辑，同时让 Windows �
 
 | 模块 | 职责 | 不负责 |
 | --- | --- | --- |
-| `browser.py` | 启动 Edge、保存登录状态、页面内请求 | 解析业务数据 |
+| `browser.py` | 启动 Edge、保存登录状态、页面内请求和图片下载 | 解析业务数据 |
 | `gateway.py` | QQ 记事本接口、分页、字段兼容 | 文件输出 |
 | `models.py` | 笔记领域模型 | 网络和文件系统 |
 | `filenames.py` | Windows 文件名清洗 | 写文件 |
-| `docx_exporter.py` | Word 文档渲染 | 网络请求 |
+| `docx_exporter.py` | Word 文档渲染、图片原字节嵌入和版心适配 | 登录态和网络传输 |
 | `workflow.py` | 批量执行、失败隔离、统计 | 用户界面 |
 | `cli.py` | 参数解析、进度和错误展示 | 网络细节 |
 | `desktop/` | Windows 窗口、后台任务、进度、目录选择 | 网络协议和 Word 细节 |
@@ -60,6 +61,12 @@ QQ 接口。这样可以用离线测试稳定核心逻辑，同时让 Windows �
 - 文档属性标题：与一级标题一致。
 - 同名的不同笔记由笔记 ID 区分。
 - 默认跳过已存在文件，`--overwrite` 时覆盖。
+- `<img>` 的原始图片字节直接写入 DOCX，不重新编码或压缩。
+- `data:` 图片在本地解码；远程图片由 `BrowserSession` 复用当前登录态下载。
+- 显示尺寸只按 A4 版心等比缩放，不裁切；图片下载或格式识别失败时整条笔记失败，
+  不使用占位文字静默替代。
+- 应用图标位于 `resources/app.png` 和 `resources/app.ico`，由
+  `scripts/generate_app_icon.py` 生成。
 
 ## 错误策略
 
@@ -67,13 +74,16 @@ QQ 接口。这样可以用离线测试稳定核心逻辑，同时让 Windows �
 - 单条笔记读取失败：记录失败并继续下一条。
 - 单个文档写入失败：记录失败并继续。
 - 接口返回非 JSON 或字段异常：抛出明确的 API 错误。
+- 接口返回 `ret=-20003`：视为临时频控，按指数退避后重试。
 
 ## 测试策略
 
 默认测试完全离线：
 
 - 用固定 JSON 伪响应验证列表分页和正文字段兼容。
+- 用分页、重复页、频控退避和断点跳过用例验证长列表。
 - 用真实 `python-docx` 写读验证标题、元数据和正文。
+- 对 DOCX 内 `word/media` 与源图片逐字节比对，并验证大图等比适配版心。
 - 用伪 `NoteSource` 验证批量导出和失败隔离。
 - Playwright 浏览器启动只在 `doctor` 或人工集成测试中验证。
 

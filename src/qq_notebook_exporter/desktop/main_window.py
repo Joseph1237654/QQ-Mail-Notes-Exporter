@@ -23,6 +23,7 @@ from PySide6.QtWidgets import (
 
 from qq_notebook_exporter import __version__
 from qq_notebook_exporter.config import Settings
+from qq_notebook_exporter.desktop.icon import app_logo_pixmap, load_app_icon
 from qq_notebook_exporter.desktop.workers import ExportWorker, LoginWorker
 from qq_notebook_exporter.workflow import ExportReport
 
@@ -45,6 +46,7 @@ class MainWindow(QMainWindow):
         )
 
         self.setWindowTitle("QQ 记事本导出")
+        self.setWindowIcon(load_app_icon())
         self.setMinimumSize(QSize(900, 620))
         self.resize(1040, 720)
         self._build_ui()
@@ -73,6 +75,14 @@ class MainWindow(QMainWindow):
         header.setFixedHeight(86)
         layout = QHBoxLayout(header)
         layout.setContentsMargins(28, 16, 28, 16)
+        layout.setSpacing(14)
+
+        logo = QLabel()
+        logo.setObjectName("AppIcon")
+        logo.setFixedSize(44, 44)
+        logo.setPixmap(app_logo_pixmap(44))
+        logo.setAccessibleName("QQ 记事本导出图标")
+        layout.addWidget(logo, 0, Qt.AlignmentFlag.AlignVCenter)
 
         brand_box = QVBoxLayout()
         brand_box.setSpacing(2)
@@ -264,9 +274,9 @@ class MainWindow(QMainWindow):
     def _login_succeeded(self, total: int) -> None:
         self._logged_in = True
         self.header_status.setText("已登录")
-        self.account_state.setText(f"可读取 {total} 条笔记")
+        self.account_state.setText(f"首屏可读取 {total} 条笔记")
         self.current_item.setText("登录态已验证")
-        self._append_log(f"登录成功，可读取 {total} 条笔记")
+        self._append_log(f"登录成功，首屏可读取 {total} 条笔记")
         self._apply_idle_state()
 
     def _export_succeeded(self, report: ExportReport) -> None:

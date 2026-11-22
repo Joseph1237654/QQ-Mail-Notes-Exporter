@@ -74,7 +74,7 @@ class ExportWorker(QThread):
                     sid,
                     request_delay=self.settings.request_delay,
                 )
-                service = ExportService(gateway, DocxExporter())
+                service = ExportService(gateway, DocxExporter(session.fetch_binary))
                 report: ExportReport = service.run(
                     self.output_dir,
                     overwrite=self.overwrite,
