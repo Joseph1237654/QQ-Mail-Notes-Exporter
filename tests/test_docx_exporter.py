@@ -214,6 +214,54 @@ def test_export_fetches_remote_image_using_page_credentials(tmp_path) -> None:
     assert media == image_bytes
 
 
+def test_export_normalizes_markdown_wrapped_image_url(tmp_path) -> None:
+    image_bytes = _png_bytes(12, 9)
+    photo_url = "https://cdn.example.test/photo.jpg?width=1200&height=900"
+    requested_urls: list[str] = []
+
+    def fetch_image(url: str) -> bytes:
+        requested_urls.append(url)
+        return image_bytes
+
+    escaped_photo_url = photo_url.replace("&", "\\&")
+    note = Note(
+        note_id="_11a",
+        subject="Markdown 图片地址",
+        content=f'<img data-original="[{photo_url}]({escaped_photo_url})">',
+    )
+
+    outcome = DocxExporter(fetch_image).export_note(note, tmp_path)
+
+    assert requested_urls == [photo_url]
+    document = Document(outcome.path)
+    assert len(document.inline_shapes) == 1
+
+
+def test_export_falls_back_to_next_image_source(tmp_path) -> None:
+    image_bytes = _png_bytes(12, 9)
+    broken_url = "https://cdn.example.test/broken.jpg"
+    photo_url = "https://cdn.example.test/photo.png"
+    requested_urls: list[str] = []
+
+    def fetch_image(url: str) -> bytes:
+        requested_urls.append(url)
+        if url == broken_url:
+            return b"<html>not an image</html>"
+        return image_bytes
+
+    note = Note(
+        note_id="_11b",
+        subject="图片地址回退",
+        content=f'<img data-original="{broken_url}" src="{photo_url}">',
+    )
+
+    outcome = DocxExporter(fetch_image).export_note(note, tmp_path)
+
+    assert requested_urls == [broken_url, photo_url]
+    document = Document(outcome.path)
+    assert len(document.inline_shapes) == 1
+
+
 def test_export_scales_large_image_to_page_without_changing_aspect_ratio(tmp_path) -> None:
     image_bytes = _png_bytes(4000, 1000)
     encoded = base64.b64encode(image_bytes).decode("ascii")
