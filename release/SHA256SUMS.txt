@@ -1,0 +1,3 @@
+244af95d4842df12dec6fda5066895042943b4b30fb25c74ab4d3a045bef863b  QQNotebookExporter-Setup-0.1.0.exe
+e199a60417c86400559df372cc10644630511ba4231da891c0960e6dc6e6d32a  QQNotebookExporter-Portable-0.1.0.zip
+5d0aca5fa3060c0d03173fd44be1a546e2b19196625f6a1c5728e2bab969230a  QQNotebookExporter-LocalSigning.cer

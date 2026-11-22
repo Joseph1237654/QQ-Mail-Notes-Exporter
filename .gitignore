@@ -8,7 +8,12 @@ __pycache__/
 htmlcov/
 build/
 dist/
-release/
+release/*
+!release/README.md
+!release/SHA256SUMS.txt
+!release/QQNotebookExporter-LocalSigning.cer
+!release/QQNotebookExporter-Portable-0.1.0.zip
+!release/QQNotebookExporter-Setup-0.1.0.exe
 artifacts/
 
 # Environments
