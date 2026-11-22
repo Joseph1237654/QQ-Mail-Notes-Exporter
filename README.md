@@ -136,13 +136,3 @@ docs/                # 架构与 PR 路线
 - Word 转换覆盖常见段落、标题、列表、引用、代码块、简单表格和图片；复杂富文本会在
   后续 PR 中增强。
 - 桌面界面使用 PySide6；正式安装包仍在后续 PR 中完成。
-
-## 开发
-
-```powershell
-ruff check .
-pytest
-```
-
-每次迭代建议从 `main` 建立单一主题分支，测试通过后提交 PR。具体规范见
-[CONTRIBUTING.md](CONTRIBUTING.md)。
