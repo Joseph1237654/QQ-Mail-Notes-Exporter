@@ -16,6 +16,8 @@ release/*
 !release/QQNotebookExporter-Setup-0.1.0.exe
 !release/QQNotebookExporter-Portable-0.1.1.zip
 !release/QQNotebookExporter-Setup-0.1.1.exe
+!release/QQNotebookExporter-Portable-0.1.2.zip
+!release/QQNotebookExporter-Setup-0.1.2.exe
 artifacts/
 
 # Environments

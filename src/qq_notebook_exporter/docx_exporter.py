@@ -47,6 +47,7 @@ SKIPPED_TAGS = {"script", "style", "meta", "link"}
 WORD_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 MARKUP_COMPATIBILITY_NS = "http://schemas.openxmlformats.org/markup-compatibility/2006"
 MARKDOWN_LINK = re.compile(r"^!?\[[^\]]*\]\(\s*<?([^)\s>]+)>?\s*\)$")
+JFIF_APP0 = b"\xff\xe0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00"
 ImageFetcher = Callable[[str], bytes]
 ImageLoader = Callable[[str], bytes]
 
@@ -129,7 +130,7 @@ class DocxExporter:
                 return cached
             blob = self._resolve_image(source)
             try:
-                DocxImage.from_blob(blob)
+                blob = _docx_compatible_image(blob)
             except Exception as exc:
                 raise ExportError(f"图片格式不受 Word 支持: {source}") from exc
             image_cache[source] = blob
@@ -387,6 +388,69 @@ def _normalize_image_source(value: str) -> str:
     if match is not None:
         source = match.group(1).strip().replace("\\&", "&")
     return source
+
+
+def _docx_compatible_image(blob: bytes) -> bytes:
+    try:
+        DocxImage.from_blob(blob)
+        return blob
+    except Exception:
+        sanitized = _strip_jpeg_exif_for_docx(blob)
+        if sanitized is None:
+            raise
+        try:
+            DocxImage.from_blob(sanitized)
+        except Exception:
+            raise
+        return sanitized
+
+
+def _strip_jpeg_exif_for_docx(blob: bytes) -> bytes | None:
+    """Remove JPEG APP1 metadata after python-docx rejects a malformed EXIF header."""
+    if not blob.startswith(b"\xff\xd8"):
+        return None
+
+    output = bytearray(b"\xff\xd8")
+    if blob[6:10] != b"JFIF":
+        output.extend(JFIF_APP0)
+
+    position = 2
+    removed_app1 = False
+    while position < len(blob):
+        if blob[position] != 0xFF:
+            return None
+        segment_start = position
+        while position < len(blob) and blob[position] == 0xFF:
+            position += 1
+        if position >= len(blob):
+            return None
+        marker = blob[position]
+        position += 1
+
+        if marker in {0xD8, 0xD9, 0x01} or 0xD0 <= marker <= 0xD7:
+            output.extend(blob[segment_start:position])
+            continue
+        if position + 2 > len(blob):
+            return None
+
+        segment_length = int.from_bytes(blob[position : position + 2], "big")
+        if segment_length < 2:
+            return None
+        segment_end = position + segment_length
+        if segment_end > len(blob):
+            return None
+
+        if marker == 0xE1:
+            removed_app1 = True
+        else:
+            output.extend(blob[segment_start:segment_end])
+        position = segment_end
+
+        if marker == 0xDA:
+            output.extend(blob[position:])
+            return bytes(output) if removed_app1 else None
+
+    return None
 
 
 def _add_inline_picture(paragraph: Any, blob: bytes) -> None:
