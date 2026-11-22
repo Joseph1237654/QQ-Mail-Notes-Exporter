@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "qq-mail-notebook-exporter"
-version = "0.1.0"
+version = "0.1.1"
 description = "Export QQ Mail notebook entries to individual Word documents on Windows."
 readme = "README.md"
 requires-python = ">=3.11"
