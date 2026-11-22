@@ -262,6 +262,30 @@ def test_export_falls_back_to_next_image_source(tmp_path) -> None:
     assert len(document.inline_shapes) == 1
 
 
+def test_export_recovers_jpeg_with_invalid_exif_metadata(tmp_path) -> None:
+    image_bytes = (Path(__file__).parent / "fixtures" / "jpeg_invalid_exif.jpg").read_bytes()
+    encoded = base64.b64encode(image_bytes).decode("ascii")
+    note = Note(
+        note_id="_11c",
+        subject="EXIF 图片",
+        content=f'<img src="data:image/jpeg;base64,{encoded}">',
+    )
+
+    outcome = DocxExporter().export_note(note, tmp_path)
+
+    document = Document(outcome.path)
+    assert len(document.inline_shapes) == 1
+    with ZipFile(outcome.path) as package:
+        media_name = next(
+            name for name in package.namelist() if name.startswith("word/media/")
+        )
+        media = package.read(media_name)
+    assert media.startswith(b"\xff\xd8")
+    assert media[6:10] == b"JFIF"
+    assert b"Exif\x00\x00" not in media[:32]
+    assert media.endswith(image_bytes[image_bytes.index(b"\xff\xda") :])
+
+
 def test_export_scales_large_image_to_page_without_changing_aspect_ratio(tmp_path) -> None:
     image_bytes = _png_bytes(4000, 1000)
     encoded = base64.b64encode(image_bytes).decode("ascii")
