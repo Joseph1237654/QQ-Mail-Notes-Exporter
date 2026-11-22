@@ -25,6 +25,12 @@ QLabel#Brand {
     font-weight: 600;
 }
 
+QLabel#AppIcon {
+    background: #FFFFFF;
+    border: 0;
+    border-radius: 4px;
+}
+
 QLabel#BrandMeta {
     color: #A8A8A8;
     font-size: 11px;

@@ -14,6 +14,10 @@ class QQMailTransportError(QQMailAPIError):
     """Raised when an API request fails temporarily and may be retried."""
 
 
+class QQMailRateLimitError(QQMailTransportError):
+    """Raised when QQ Mail asks the client to slow down."""
+
+
 class BrowserLaunchError(QQNotebookExporterError):
     """Raised when the browser or its persistent profile cannot be opened."""
 
