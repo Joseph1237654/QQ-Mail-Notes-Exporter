@@ -78,7 +78,8 @@ qq-notebook-export export --profile D:\qq-mail-profile
 qq-notebook-desktop
 ```
 
-桌面版使用黑白灰极简界面，提供登录、目录选择、导出进度、成功/失败计数和活动日志。
+桌面版使用黑白灰极简界面，提供登录、导出进度、成功/失败计数和活动日志。导出路径与
+版本信息集中在左下角“设置”入口中。
 
 导出结果示例：
 

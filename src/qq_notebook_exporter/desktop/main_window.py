@@ -6,11 +6,10 @@ from pathlib import Path
 from PySide6.QtCore import QSettings, QSize, Qt, QUrl
 from PySide6.QtGui import QCloseEvent, QDesktopServices
 from PySide6.QtWidgets import (
-    QFileDialog,
+    QDialog,
     QFrame,
     QHBoxLayout,
     QLabel,
-    QLineEdit,
     QMainWindow,
     QMessageBox,
     QPlainTextEdit,
@@ -21,9 +20,9 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from qq_notebook_exporter import __version__
 from qq_notebook_exporter.config import Settings
-from qq_notebook_exporter.desktop.icon import app_logo_pixmap, load_app_icon
+from qq_notebook_exporter.desktop.icon import app_logo_pixmap, load_app_icon, settings_gear_icon
+from qq_notebook_exporter.desktop.settings_dialog import SettingsDialog
 from qq_notebook_exporter.desktop.workers import ExportWorker, LoginWorker
 from qq_notebook_exporter.workflow import ExportReport
 
@@ -39,6 +38,7 @@ class MainWindow(QMainWindow):
         self.settings.ensure_directories()
         self._worker: LoginWorker | ExportWorker | None = None
         self._logged_in = False
+        self._output_dir = self.settings.output_dir
         self._last_output_dir: Path | None = None
         self._preferences = preferences or QSettings(
             "QQNotebookExporter",
@@ -79,20 +79,14 @@ class MainWindow(QMainWindow):
 
         logo = QLabel()
         logo.setObjectName("AppIcon")
-        logo.setFixedSize(44, 44)
-        logo.setPixmap(app_logo_pixmap(44))
+        logo.setFixedSize(40, 40)
+        logo.setPixmap(app_logo_pixmap(40, "#D2D2D2"))
         logo.setAccessibleName("QQ 记事本导出图标")
         layout.addWidget(logo, 0, Qt.AlignmentFlag.AlignVCenter)
 
-        brand_box = QVBoxLayout()
-        brand_box.setSpacing(2)
         brand = QLabel("QQ 记事本导出")
         brand.setObjectName("Brand")
-        meta = QLabel("WINDOWS DESKTOP")
-        meta.setObjectName("BrandMeta")
-        brand_box.addWidget(brand)
-        brand_box.addWidget(meta)
-        layout.addLayout(brand_box)
+        layout.addWidget(brand, 0, Qt.AlignmentFlag.AlignVCenter)
         layout.addStretch(1)
 
         self.header_status = QLabel("未登录")
@@ -108,25 +102,6 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(24, 24, 24, 20)
         layout.setSpacing(12)
 
-        directory_label = QLabel("导出目录")
-        directory_label.setObjectName("SectionLabel")
-        layout.addWidget(directory_label)
-
-        directory_row = QHBoxLayout()
-        directory_row.setSpacing(8)
-        self.path_edit = QLineEdit(str(self.settings.output_dir))
-        self.path_edit.setPlaceholderText("选择 Word 导出目录")
-        self.path_edit.setAccessibleName("导出目录")
-        self.path_edit.setClearButtonEnabled(True)
-        self.browse_button = QPushButton("选择目录")
-        self.browse_button.setMinimumWidth(100)
-        self.browse_button.setToolTip("选择 Word 文件的保存位置")
-        self.browse_button.clicked.connect(self._choose_directory)
-        directory_row.addWidget(self.path_edit, 1)
-        directory_row.addWidget(self.browse_button)
-        layout.addLayout(directory_row)
-
-        layout.addWidget(_rule())
         account_label = QLabel("账户")
         account_label.setObjectName("SectionLabel")
         layout.addWidget(account_label)
@@ -151,9 +126,15 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.export_button)
 
         layout.addStretch(1)
-        version = QLabel(f"版本 {__version__}")
-        version.setObjectName("Muted")
-        layout.addWidget(version)
+        self.settings_button = QPushButton()
+        self.settings_button.setObjectName("SettingsButton")
+        self.settings_button.setIcon(settings_gear_icon())
+        self.settings_button.setIconSize(QSize(27, 27))
+        self.settings_button.setAccessibleName("打开设置")
+        self.settings_button.setToolTip("打开设置")
+        self.settings_button.setFixedSize(40, 40)
+        self.settings_button.clicked.connect(self._open_settings)
+        layout.addWidget(self.settings_button, 0, Qt.AlignmentFlag.AlignLeft)
         return sidebar
 
     def _build_content(self) -> QWidget:
@@ -222,21 +203,9 @@ class MainWindow(QMainWindow):
         layout.addLayout(box)
         return value
 
-    def _choose_directory(self) -> None:
-        directory = QFileDialog.getExistingDirectory(
-            self,
-            "选择 Word 导出目录",
-            self.path_edit.text() or str(self.settings.output_dir),
-        )
-        if directory:
-            self.path_edit.setText(directory)
-            self.path_edit.setCursorPosition(0)
-            self.path_edit.setToolTip(directory)
-
     def _start_login(self) -> None:
         if self._worker is not None and self._worker.isRunning():
             return
-        self._save_output_path()
         self._set_busy("等待登录")
         self.account_state.setText("等待浏览器登录")
         self.current_item.setText("请在 Edge 中完成登录")
@@ -256,15 +225,7 @@ class MainWindow(QMainWindow):
             self._append_log("请先完成 QQ 邮箱登录")
             return
 
-        path_text = self.path_edit.text().strip()
-        if not path_text:
-            self._choose_directory()
-            path_text = self.path_edit.text().strip()
-        if not path_text:
-            self._show_error("请先选择 Word 导出目录。")
-            return
-
-        output_dir = Path(path_text).expanduser()
+        output_dir = self._output_dir
         try:
             output_dir.mkdir(parents=True, exist_ok=True)
         except OSError as exc:
@@ -302,7 +263,7 @@ class MainWindow(QMainWindow):
         self.progress_percent.setText("100%")
         self.current_item.setText("导出完成")
         self.header_status.setText("已完成")
-        self._last_output_dir = Path(self.path_edit.text())
+        self._last_output_dir = self._output_dir
         self._append_log(
             f"导出完成：{report.exported} 条成功，{report.skipped} 条跳过，"
             f"{report.failed} 条失败"
@@ -342,8 +303,7 @@ class MainWindow(QMainWindow):
         self.header_status.setText(status)
         self.login_button.setEnabled(False)
         self.export_button.setEnabled(False)
-        self.browse_button.setEnabled(False)
-        self.path_edit.setEnabled(False)
+        self.settings_button.setEnabled(False)
         self.progress_bar.setRange(0, 0)
         self.progress_percent.setText("处理中")
 
@@ -352,8 +312,7 @@ class MainWindow(QMainWindow):
             return
         self.login_button.setEnabled(True)
         self.export_button.setEnabled(self._logged_in)
-        self.browse_button.setEnabled(True)
-        self.path_edit.setEnabled(True)
+        self.settings_button.setEnabled(True)
         self.progress_bar.setRange(0, 100)
 
     def _reset_progress(self) -> None:
@@ -366,9 +325,21 @@ class MainWindow(QMainWindow):
         self.current_item.setText("准备读取记事本")
 
     def _open_output_directory(self) -> None:
-        directory = self._last_output_dir or Path(self.path_edit.text()).expanduser()
+        directory = self._last_output_dir or self._output_dir
         if directory.exists():
             QDesktopServices.openUrl(QUrl.fromLocalFile(str(directory)))
+
+    def _open_settings(self) -> None:
+        if self._worker is not None and self._worker.isRunning():
+            return
+        dialog = SettingsDialog(self._output_dir, self)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            self._set_output_dir(dialog.output_dir)
+
+    def _set_output_dir(self, output_dir: Path) -> None:
+        self._output_dir = output_dir
+        self._last_output_dir = output_dir
+        self._preferences.setValue("output_dir", str(output_dir))
 
     def _append_log(self, message: str) -> None:
         timestamp = datetime.now().strftime("%H:%M:%S")
@@ -377,16 +348,10 @@ class MainWindow(QMainWindow):
     def _show_error(self, message: str) -> None:
         QMessageBox.critical(self, "QQ 记事本导出", message)
 
-    def _save_output_path(self) -> None:
-        value = self.path_edit.text().strip()
-        if value:
-            self._preferences.setValue("output_dir", value)
-
     def _restore_preferences(self) -> None:
         stored_path = self._preferences.value("output_dir", str(self.settings.output_dir))
-        self.path_edit.setText(str(stored_path))
-        self.path_edit.setCursorPosition(0)
-        self.path_edit.setToolTip(str(stored_path))
+        if stored_path:
+            self._output_dir = Path(str(stored_path)).expanduser()
         geometry = self._preferences.value("geometry")
         if geometry:
             self.restoreGeometry(geometry)
@@ -397,7 +362,6 @@ class MainWindow(QMainWindow):
             event.ignore()
             return
         self._preferences.setValue("geometry", self.saveGeometry())
-        self._save_output_path()
         event.accept()
 
 
