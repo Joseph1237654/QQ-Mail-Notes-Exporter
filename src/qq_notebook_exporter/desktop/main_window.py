@@ -40,12 +40,13 @@ class MainWindow(QMainWindow):
         self._logged_in = False
         self._output_dir = self.settings.output_dir
         self._last_output_dir: Path | None = None
+        # Preserve the existing organization key so user preferences survive the rename.
         self._preferences = preferences or QSettings(
             "QQNotebookExporter",
             "QQMailNotebookExporter",
         )
 
-        self.setWindowTitle("QQ 记事本导出")
+        self.setWindowTitle("QQNoteExporter")
         self.setWindowIcon(load_app_icon())
         self.setMinimumSize(QSize(900, 620))
         self.resize(1040, 720)
@@ -81,10 +82,10 @@ class MainWindow(QMainWindow):
         logo.setObjectName("AppIcon")
         logo.setFixedSize(40, 40)
         logo.setPixmap(app_logo_pixmap(40, "#D2D2D2"))
-        logo.setAccessibleName("QQ 记事本导出图标")
+        logo.setAccessibleName("QQNoteExporter 图标")
         layout.addWidget(logo, 0, Qt.AlignmentFlag.AlignVCenter)
 
-        brand = QLabel("QQ 记事本导出")
+        brand = QLabel("QQNoteExporter")
         brand.setObjectName("Brand")
         layout.addWidget(brand, 0, Qt.AlignmentFlag.AlignVCenter)
         layout.addStretch(1)
@@ -346,7 +347,7 @@ class MainWindow(QMainWindow):
         self.activity_log.appendPlainText(f"{timestamp}  {message}")
 
     def _show_error(self, message: str) -> None:
-        QMessageBox.critical(self, "QQ 记事本导出", message)
+        QMessageBox.critical(self, "QQNoteExporter", message)
 
     def _restore_preferences(self) -> None:
         stored_path = self._preferences.value("output_dir", str(self.settings.output_dir))

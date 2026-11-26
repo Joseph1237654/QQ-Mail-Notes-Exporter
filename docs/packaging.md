@@ -32,8 +32,8 @@ python scripts\build_windows.py
 输出：
 
 ```text
-dist\QQNotebookExporter\
-  QQNotebookExporter.exe
+dist\QQNoteExporter\
+  QQNoteExporter.exe
   _internal\
 ```
 

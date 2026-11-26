@@ -1,7 +1,7 @@
-# QQ 邮箱记事本导出工具
+# QQNoteExporter
 
-面向 Windows 的 Python 工具，用于将 QQ 邮箱记事本中的笔记逐条导出为 Word
-文档。每条笔记生成一个独立的 `.docx` 文件，原始标题同时保留在文件名和文档一级标题中。
+面向 Windows 的 QQ 邮箱记事本导出工具，用于将笔记逐条导出为 Word 文档。每条笔记
+生成一个独立的 `.docx` 文件，原始标题同时保留在文件名和文档一级标题中。
 
 当前版本是首个基础架构版本，包含：
 
@@ -151,5 +151,5 @@ python -m pip install -e ".[build,gui]"
 python scripts\build_windows.py
 ```
 
-便携版输出到 `dist/QQNotebookExporter`。使用 `--installer` 参数并安装 Inno Setup 6
-后，可生成 `release/QQNotebookExporter-Setup-*.exe`。
+便携版输出到 `dist/QQNoteExporter`。使用 `--installer` 参数并安装 Inno Setup 6
+后，可生成 `release/QQNoteExporter-Setup-*.exe`。

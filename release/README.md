@@ -1,10 +1,11 @@
-# QQ 记事本导出 0.1.4
+# QQNoteExporter 0.1.4
 
 本目录包含可分发安装包、便携版、自签名公钥证书和 SHA256 校验值。源代码位于仓库
 根目录，本目录不包含任何用户笔记、导出 DOCX、浏览器配置或日志。
 
 ## 0.1.4 更新
 
+- 程序默认名称、可执行文件、安装器和发布包统一更名为 `QQNoteExporter`。
 - 将导出路径设置移入独立设置窗口，并在左下角提供齿轮入口。
 - 新增“关于我们”页面，展示当前版本、软件名称和设计理念。
 - 移除标题栏中的 `WINDOWS DESKTOP` 副标题，简化顶部信息。
@@ -13,9 +14,9 @@
 
 ## 文件
 
-- `QQNotebookExporter-Setup-0.1.4.exe`：Windows 安装程序。
-- `QQNotebookExporter-Portable-0.1.4.zip`：解压后双击
-  `QQNotebookExporter.exe` 运行。
+- `QQNoteExporter-Setup-0.1.4.exe`：Windows 安装程序。
+- `QQNoteExporter-Portable-0.1.4.zip`：解压后双击
+  `QQNoteExporter.exe` 运行。
 - `QQNotebookExporter-LocalSigning.cer`：用于验证发布文件签名的自签名公钥证书。
 - `SHA256SUMS.txt`：发布文件校验值。
 
@@ -31,15 +32,15 @@ Windows SmartScreen 仍可能显示“未知发布者”。
 查看签名状态：
 
 ```powershell
-Get-AuthenticodeSignature .\QQNotebookExporter-Setup-0.1.4.exe |
+Get-AuthenticodeSignature .\QQNoteExporter-Setup-0.1.4.exe |
     Format-List Status, StatusMessage, SignerCertificate, TimeStamperCertificate
 ```
 
 校验 SHA256：
 
 ```powershell
-Get-FileHash .\QQNotebookExporter-Setup-0.1.4.exe -Algorithm SHA256
-Get-FileHash .\QQNotebookExporter-Portable-0.1.4.zip -Algorithm SHA256
+Get-FileHash .\QQNoteExporter-Setup-0.1.4.exe -Algorithm SHA256
+Get-FileHash .\QQNoteExporter-Portable-0.1.4.zip -Algorithm SHA256
 ```
 
 ## 隐私边界

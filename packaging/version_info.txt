@@ -16,12 +16,12 @@ VSVersionInfo(
           '080404B0',
           [
             StringStruct('CompanyName', 'QQ Notebook Exporter'),
-            StringStruct('FileDescription', 'QQ 记事本导出'),
+            StringStruct('FileDescription', 'QQNoteExporter'),
             StringStruct('FileVersion', '0.1.4'),
-            StringStruct('InternalName', 'QQNotebookExporter'),
+            StringStruct('InternalName', 'QQNoteExporter'),
             StringStruct('LegalCopyright', 'Copyright (c) 2026'),
-            StringStruct('OriginalFilename', 'QQNotebookExporter.exe'),
-            StringStruct('ProductName', 'QQ 记事本导出'),
+            StringStruct('OriginalFilename', 'QQNoteExporter.exe'),
+            StringStruct('ProductName', 'QQNoteExporter'),
             StringStruct('ProductVersion', '0.1.4')
           ]
         )

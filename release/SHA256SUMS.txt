@@ -1,5 +1,5 @@
-a8684af48c63a3755fd0a78f6b9be88b58b4fe6421b819fcf47afd6e672ec8c4  QQNotebookExporter-Setup-0.1.4.exe
-695b94e1b37aaf7ffde46146fec34dd1622d923df3ccf3ec5df45afdad43cc5e  QQNotebookExporter-Portable-0.1.4.zip
+bb73faf81dbf5e8d6241fc07f34bb86b936a888feca0dc34dc8d99a815ccde86  QQNoteExporter-Setup-0.1.4.exe
+ae98bed54f7d1b2a1dc37bc9cf0caec1b46031f8d75717b3b0d79563df6633b2  QQNoteExporter-Portable-0.1.4.zip
 e7e9a9598b2fa93b24493b4a18d796f57b2782393c981b6b9a94a28f8941b626  QQNotebookExporter-Setup-0.1.3.exe
 f032f114a55e2e83b0152033b1fe7dd29c6a04115578d2832b937b22c78f810e  QQNotebookExporter-Portable-0.1.3.zip
 ed06806d72d4450e799c72c0c01ef39cee393e57c51e7476a67157b3de353247  QQNotebookExporter-Setup-0.1.2.exe

@@ -10,9 +10,9 @@ import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SPEC_PATH = ROOT / "packaging" / "QQNotebookExporter.spec"
+SPEC_PATH = ROOT / "packaging" / "QQNoteExporter.spec"
 DIST_ROOT = ROOT / "dist"
-RELEASE_APP_DIR = DIST_ROOT / "QQNotebookExporter"
+RELEASE_APP_DIR = DIST_ROOT / "QQNoteExporter"
 WORK_ROOT = ROOT / "build" / "pyinstaller"
 RELEASE_ROOT = ROOT / "release"
 VERSION_INFO = ROOT / "packaging" / "version_info.txt"

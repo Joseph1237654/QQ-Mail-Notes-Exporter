@@ -2,9 +2,9 @@
   #define AppVersion "0.1.4"
 #endif
 
-#define AppName "QQ 记事本导出"
-#define AppExe "QQNotebookExporter.exe"
-#define AppPublisher "QQNotebookExporter"
+#define AppName "QQNoteExporter"
+#define AppExe "QQNoteExporter.exe"
+#define AppPublisher "QQNoteExporter"
 #define AppId "{{A4D8EB61-41A7-47C8-A11B-1BC27E48F40E}"
 
 [Setup]
@@ -12,14 +12,14 @@ AppId={#AppId}
 AppName={#AppName}
 AppVersion={#AppVersion}
 AppPublisher={#AppPublisher}
-DefaultDirName={localappdata}\Programs\QQNotebookExporter
+DefaultDirName={localappdata}\Programs\QQNoteExporter
 DefaultGroupName={#AppName}
 DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 OutputDir=..\release
-OutputBaseFilename=QQNotebookExporter-Setup-{#AppVersion}
+OutputBaseFilename=QQNoteExporter-Setup-{#AppVersion}
 SetupIconFile=..\src\qq_notebook_exporter\resources\app.ico
 UninstallDisplayIcon={app}\{#AppExe}
 LicenseFile=..\LICENSE
@@ -35,7 +35,7 @@ Name: "chinesesimplified"; MessagesFile: "ChineseSimplified.isl"
 Name: "desktopicon"; Description: "创建桌面快捷方式"; GroupDescription: "附加快捷方式:"; Flags: unchecked
 
 [Files]
-Source: "..\dist\QQNotebookExporter\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\dist\QQNoteExporter\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{autoprograms}\{#AppName}"; Filename: "{app}\{#AppExe}"; IconFilename: "{app}\{#AppExe}"

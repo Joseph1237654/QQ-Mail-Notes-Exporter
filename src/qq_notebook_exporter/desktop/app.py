@@ -11,8 +11,9 @@ from qq_notebook_exporter.desktop.style import APP_STYLE
 
 def main() -> int:
     app = QApplication(sys.argv)
-    app.setApplicationName("QQ 记事本导出")
-    app.setOrganizationName("QQNotebookExporter")
+    app.setApplicationName("QQNoteExporter")
+    app.setApplicationDisplayName("QQNoteExporter")
+    app.setOrganizationName("QQNoteExporter")
     app.setStyle("Fusion")
     app.setStyleSheet(APP_STYLE)
     app.setWindowIcon(load_app_icon())

@@ -6,8 +6,8 @@ param(
     [string]$TimestampServer = "http://timestamp.digicert.com",
 
     [string[]]$Files = @(
-        "dist\QQNotebookExporter\QQNotebookExporter.exe",
-        "release\QQNotebookExporter-Setup-0.1.4.exe"
+        "dist\QQNoteExporter\QQNoteExporter.exe",
+        "release\QQNoteExporter-Setup-0.1.4.exe"
     )
 )
 
