@@ -21,7 +21,7 @@ from PySide6.QtWidgets import (
 )
 
 from qq_notebook_exporter.config import Settings
-from qq_notebook_exporter.desktop.icon import app_logo_pixmap, load_app_icon
+from qq_notebook_exporter.desktop.icon import app_logo_pixmap, load_app_icon, settings_gear_icon
 from qq_notebook_exporter.desktop.settings_dialog import SettingsDialog
 from qq_notebook_exporter.desktop.workers import ExportWorker, LoginWorker
 from qq_notebook_exporter.workflow import ExportReport
@@ -84,15 +84,9 @@ class MainWindow(QMainWindow):
         logo.setAccessibleName("QQ 记事本导出图标")
         layout.addWidget(logo, 0, Qt.AlignmentFlag.AlignVCenter)
 
-        brand_box = QVBoxLayout()
-        brand_box.setSpacing(2)
         brand = QLabel("QQ 记事本导出")
         brand.setObjectName("Brand")
-        meta = QLabel("WINDOWS DESKTOP")
-        meta.setObjectName("BrandMeta")
-        brand_box.addWidget(brand)
-        brand_box.addWidget(meta)
-        layout.addLayout(brand_box)
+        layout.addWidget(brand, 0, Qt.AlignmentFlag.AlignVCenter)
         layout.addStretch(1)
 
         self.header_status = QLabel("未登录")
@@ -132,8 +126,10 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.export_button)
 
         layout.addStretch(1)
-        self.settings_button = QPushButton("\u2699")
+        self.settings_button = QPushButton()
         self.settings_button.setObjectName("SettingsButton")
+        self.settings_button.setIcon(settings_gear_icon())
+        self.settings_button.setIconSize(QSize(27, 27))
         self.settings_button.setAccessibleName("打开设置")
         self.settings_button.setToolTip("打开设置")
         self.settings_button.setFixedSize(40, 40)

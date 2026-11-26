@@ -2,8 +2,17 @@ from __future__ import annotations
 
 from importlib.resources import files
 
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QColor, QIcon, QImage, QPixmap
+from PySide6.QtCore import QPointF, QRectF, Qt
+from PySide6.QtGui import (
+    QColor,
+    QIcon,
+    QImage,
+    QPainter,
+    QPainterPath,
+    QPen,
+    QPixmap,
+    QTransform,
+)
 
 
 def load_app_icon() -> QIcon:
@@ -42,3 +51,50 @@ def _tint_ink(pixmap: QPixmap, color: QColor) -> QPixmap:
             else:
                 image.setPixelColor(x, y, QColor(color.red(), color.green(), color.blue(), alpha))
     return QPixmap.fromImage(image)
+
+
+def settings_gear_icon(size: int = 64, color: QColor | str = "#686868") -> QIcon:
+    pixmap = QPixmap(size, size)
+    pixmap.fill(Qt.GlobalColor.transparent)
+
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+    pen = QPen(
+        QColor(color),
+        size * 0.0625,
+        Qt.PenStyle.SolidLine,
+        Qt.PenCapStyle.RoundCap,
+        Qt.PenJoinStyle.RoundJoin,
+    )
+    painter.setPen(pen)
+    painter.setBrush(Qt.BrushStyle.NoBrush)
+
+    center = size / 2
+    core_radius = size * 0.245
+    outer_radius = size * 0.405
+    tooth_width = size * 0.145
+    tooth_length = outer_radius - core_radius + size * 0.03
+
+    gear = QPainterPath()
+    gear.addEllipse(QPointF(center, center), core_radius, core_radius)
+    for index in range(8):
+        tooth = QPainterPath()
+        tooth.addRoundedRect(
+            QRectF(
+                -tooth_width / 2,
+                -outer_radius,
+                tooth_width,
+                tooth_length,
+            ),
+            tooth_width / 2,
+            tooth_width / 2,
+        )
+        transform = QTransform()
+        transform.translate(center, center)
+        transform.rotate(index * 45)
+        gear = gear.united(transform.map(tooth))
+
+    painter.drawPath(gear)
+    painter.drawEllipse(QPointF(center, center), size * 0.12, size * 0.12)
+    painter.end()
+    return QIcon(pixmap)

@@ -14,7 +14,7 @@ QSettings = qt_core.QSettings
 QColor = qt_gui.QColor
 
 from qq_notebook_exporter.config import Settings  # noqa: E402
-from qq_notebook_exporter.desktop.icon import app_logo_pixmap  # noqa: E402
+from qq_notebook_exporter.desktop.icon import app_logo_pixmap, settings_gear_icon  # noqa: E402
 from qq_notebook_exporter.desktop.main_window import MainWindow  # noqa: E402
 from qq_notebook_exporter.desktop.settings_dialog import SettingsDialog  # noqa: E402
 from qq_notebook_exporter.desktop.style import APP_STYLE  # noqa: E402
@@ -58,10 +58,12 @@ def test_initial_window_state(window) -> None:
     assert window.login_button.isEnabled()
     assert not window.export_button.isEnabled()
     assert window.settings_button.isEnabled()
-    assert window.settings_button.text() == "\u2699"
+    assert window.settings_button.text() == ""
+    assert not window.settings_button.icon().isNull()
     assert window.settings_button.accessibleName() == "打开设置"
     assert window.settings_button.width() == 40
     assert window._output_dir.name == "exports"
+    assert window.findChild(qt_widgets.QLabel, "BrandMeta") is None
     logo = window.findChild(qt_widgets.QLabel, "AppIcon")
     assert logo is not None
     assert not logo.pixmap().isNull()
@@ -79,6 +81,17 @@ def test_brand_mark_uses_transparent_tinted_ink() -> None:
     assert image.pixelColor(0, 0).alpha() == 0
     assert visible
     assert all(color.red() == color.green() == color.blue() for color in visible)
+
+
+def test_settings_gear_icon_has_transparent_center(app) -> None:
+    image = settings_gear_icon().pixmap(64, 64).toImage()
+
+    assert image.pixelColor(32, 32).alpha() == 0
+    assert any(
+        image.pixelColor(x, y).alpha() > 0
+        for y in range(image.height())
+        for x in range(image.width())
+    )
 
 
 def test_settings_directory_picker_updates_output_path(window, monkeypatch, tmp_path) -> None:

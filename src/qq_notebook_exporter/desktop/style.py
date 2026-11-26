@@ -25,11 +25,6 @@ QLabel#Brand {
     font-weight: 600;
 }
 
-QLabel#BrandMeta {
-    color: #A8A8A8;
-    font-size: 11px;
-}
-
 QLabel#HeaderStatus {
     color: #D8D8D8;
     border: 1px solid #3A3A3A;
@@ -48,8 +43,6 @@ QPushButton#SettingsButton {
     border: 1px solid transparent;
     color: #555555;
     padding: 0;
-    font-family: "Segoe UI Symbol", "Microsoft YaHei";
-    font-size: 21px;
 }
 
 QPushButton#SettingsButton:hover {
