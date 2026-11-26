@@ -33,7 +33,7 @@ FORBIDDEN_SUFFIXES = {
     ".sqlite3",
 }
 REQUIRED_FILES = {
-    "QQNotebookExporter.exe",
+    "QQNoteExporter.exe",
     "_internal/qq_notebook_exporter/resources/app.ico",
     "_internal/qq_notebook_exporter/resources/app.png",
 }

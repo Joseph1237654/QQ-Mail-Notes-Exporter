@@ -39,7 +39,7 @@ def window(app, tmp_path):
     preferences = QSettings(
         QSettings.Format.IniFormat,
         QSettings.Scope.UserScope,
-        "QQNotebookExporterTests",
+        "QQNoteExporterTests",
         f"test-{tmp_path.name}",
     )
     preferences.clear()
@@ -52,7 +52,7 @@ def window(app, tmp_path):
 
 
 def test_initial_window_state(window) -> None:
-    assert window.windowTitle() == "QQ 记事本导出"
+    assert window.windowTitle() == "QQNoteExporter"
     assert not window.windowIcon().isNull()
     assert window.header_status.text() == "未登录"
     assert window.login_button.isEnabled()
@@ -64,6 +64,9 @@ def test_initial_window_state(window) -> None:
     assert window.settings_button.width() == 40
     assert window._output_dir.name == "exports"
     assert window.findChild(qt_widgets.QLabel, "BrandMeta") is None
+    brand = window.findChild(qt_widgets.QLabel, "Brand")
+    assert brand is not None
+    assert brand.text() == "QQNoteExporter"
     logo = window.findChild(qt_widgets.QLabel, "AppIcon")
     assert logo is not None
     assert not logo.pixmap().isNull()

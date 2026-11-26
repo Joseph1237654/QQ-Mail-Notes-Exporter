@@ -90,7 +90,7 @@ def _build_release_tree(tmp_path: Path) -> Path:
     release = tmp_path / "release"
     resources = release / "_internal" / "qq_notebook_exporter" / "resources"
     resources.mkdir(parents=True)
-    (release / "QQNotebookExporter.exe").write_bytes(b"exe")
+    (release / "QQNoteExporter.exe").write_bytes(b"exe")
     (resources / "app.ico").write_bytes(b"ico")
     (resources / "app.png").write_bytes(b"png")
     return release

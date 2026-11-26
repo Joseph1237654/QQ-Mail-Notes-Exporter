@@ -4,6 +4,7 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
+# Preserve the legacy profile path so existing browser sessions survive the rename.
 APP_DIR_NAME = "QQNotebookExporter"
 
 

@@ -54,7 +54,7 @@ class SettingsDialog(QDialog):
         title.setObjectName("SettingsNavTitle")
         layout.addWidget(title)
 
-        subtitle = QLabel("QQ 记事本导出")
+        subtitle = QLabel("QQNoteExporter")
         subtitle.setObjectName("SettingsNavSubtitle")
         layout.addWidget(subtitle)
         layout.addSpacing(18)
@@ -162,12 +162,12 @@ class SettingsDialog(QDialog):
         logo.setObjectName("AboutIcon")
         logo.setFixedSize(54, 54)
         logo.setPixmap(app_logo_pixmap(54, "#222222"))
-        logo.setAccessibleName("QQ 记事本导出图标")
+        logo.setAccessibleName("QQNoteExporter 图标")
         identity.addWidget(logo, 0, Qt.AlignmentFlag.AlignTop)
 
         identity_text = QVBoxLayout()
         identity_text.setSpacing(3)
-        name = QLabel("QQ 记事本导出")
+        name = QLabel("QQNoteExporter")
         name.setObjectName("AboutName")
         version = QLabel(f"版本 {__version__}")
         version.setObjectName("AboutVersion")
