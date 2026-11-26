@@ -14,6 +14,7 @@ QSettings = qt_core.QSettings
 QColor = qt_gui.QColor
 
 from qq_notebook_exporter.config import Settings  # noqa: E402
+from qq_notebook_exporter.desktop.i18n import translate_runtime_message  # noqa: E402
 from qq_notebook_exporter.desktop.icon import app_logo_pixmap, settings_gear_icon  # noqa: E402
 from qq_notebook_exporter.desktop.main_window import MainWindow  # noqa: E402
 from qq_notebook_exporter.desktop.settings_dialog import SettingsDialog  # noqa: E402
@@ -52,7 +53,7 @@ def window(app, tmp_path):
 
 
 def test_initial_window_state(window) -> None:
-    assert window.windowTitle() == "QQNoteExporter"
+    assert window.windowTitle() == "QQ邮箱记事本导出器"
     assert not window.windowIcon().isNull()
     assert window.header_status.text() == "未登录"
     assert window.login_button.isEnabled()
@@ -66,7 +67,7 @@ def test_initial_window_state(window) -> None:
     assert window.findChild(qt_widgets.QLabel, "BrandMeta") is None
     brand = window.findChild(qt_widgets.QLabel, "Brand")
     assert brand is not None
-    assert brand.text() == "QQNoteExporter"
+    assert brand.text() == "QQ邮箱记事本导出器"
     logo = window.findChild(qt_widgets.QLabel, "AppIcon")
     assert logo is not None
     assert not logo.pixmap().isNull()
@@ -127,13 +128,13 @@ def test_settings_save_updates_main_window_output_path(window, tmp_path) -> None
 
 
 def test_about_page_contains_version_and_design_philosophy(window) -> None:
-    dialog = SettingsDialog(window._output_dir, window)
+    dialog = SettingsDialog(window._output_dir, window, language=window.language)
 
     dialog.about_nav_button.click()
 
     version = dialog.findChild(qt_widgets.QLabel, "AboutVersion")
     philosophy = dialog.findChild(qt_widgets.QLabel, "AboutBody")
-    assert dialog.pages.currentIndex() == 1
+    assert dialog.pages.currentIndex() == 2
     assert version is not None
     assert version.text().startswith("版本 ")
     assert philosophy is not None
@@ -182,6 +183,88 @@ def test_login_progress_and_export_result(window, app) -> None:
     assert window.failed_value.text() == "1"
     assert window.progress_bar.value() == 100
     assert "正文缺失" in window.activity_log.toPlainText()
+
+
+def test_language_setting_switches_entire_ui_to_english(window) -> None:
+    window._set_language("en")
+    app = QApplication.instance()
+    assert app is not None
+
+    assert window.windowTitle() == "QQ Mail Notebook Exporter"
+    assert app.applicationDisplayName() == "QQ Mail Notebook Exporter"
+    assert window.brand_label.text() == "QQ Mail Notebook Exporter"
+    assert window.header_status.text() == "Not signed in"
+    assert window.account_state.text() == "Not signed in"
+    assert window.login_button.text() == "Sign in to QQ Mail"
+    assert window.export_button.text() == "Start export"
+    assert window.open_directory_button.text() == "Open folder"
+    assert window.total_label.text() == "Total"
+    assert window.exported_label.text() == "Exported"
+    assert window.failed_label.text() == "Failed"
+    assert window.current_item.text() == "Ready"
+    assert window.activity_log.placeholderText() == "Export activity will appear here"
+    assert window.settings_button.accessibleName() == "Open settings"
+    assert window.settings_button.toolTip() == "Open settings"
+    assert window._preferences.value("language") == "en"
+    assert "Interface language changed to English." in window.activity_log.toPlainText()
+
+
+def test_settings_language_page_saves_english(window, tmp_path) -> None:
+    dialog = SettingsDialog(
+        window._output_dir,
+        window,
+        language=window.language,
+    )
+    dialog.language_nav_button.click()
+
+    assert dialog.pages.currentIndex() == 1
+    assert dialog.language_combo.count() == 2
+    dialog.language_combo.setCurrentIndex(dialog.language_combo.findData("en"))
+    dialog._save()
+
+    assert dialog.result() == qt_widgets.QDialog.DialogCode.Accepted
+    assert dialog.language == "en"
+
+    window._set_output_dir(dialog.output_dir)
+    window._set_language(dialog.language)
+    assert window.brand_label.text() == "QQ Mail Notebook Exporter"
+
+
+def test_settings_dialog_renders_english_copy(window) -> None:
+    dialog = SettingsDialog(
+        window._output_dir,
+        window,
+        language="en",
+    )
+
+    assert dialog.windowTitle() == "Settings"
+    assert dialog.path_nav_button.text() == "Export path"
+    assert dialog.language_nav_button.text() == "Language"
+    assert dialog.about_nav_button.text() == "About"
+    assert dialog.browse_button.text() == "Choose folder"
+    assert dialog.cancel_button.text() == "Cancel"
+    assert dialog.save_button.text() == "Save"
+
+    dialog.about_nav_button.click()
+    version = dialog.findChild(qt_widgets.QLabel, "AboutVersion")
+    philosophy = dialog.findChild(qt_widgets.QLabel, "AboutBody")
+    assert version is not None
+    assert version.text().startswith("Version ")
+    assert philosophy is not None
+    assert "local-first" in philosophy.text()
+
+
+def test_runtime_errors_follow_selected_language() -> None:
+    assert (
+        translate_runtime_message("en", "浏览器页面尚未初始化。")
+        == "The browser page is not ready."
+    )
+    assert translate_runtime_message("en", "未知中文错误") == (
+        "The task failed. Please try again."
+    )
+    assert translate_runtime_message("zh_CN", "浏览器页面尚未初始化。") == (
+        "浏览器页面尚未初始化。"
+    )
 
 
 def test_ui_renders_black_white_and_gray_regions(window, app) -> None:

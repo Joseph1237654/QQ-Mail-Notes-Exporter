@@ -1,22 +1,22 @@
-# QQNoteExporter 0.1.4
+# QQNoteExporter 0.1.5
 
 本目录包含可分发安装包、便携版、自签名公钥证书和 SHA256 校验值。源代码位于仓库
 根目录，本目录不包含任何用户笔记、导出 DOCX、浏览器配置或日志。
 
-## 0.1.4 更新
+## 0.1.5 更新
 
-- 修复 Windows 安装向导未显示安装目录选择页的问题，现在可以自定义程序安装位置。
-- 程序默认名称、可执行文件、安装器和发布包统一更名为 `QQNoteExporter`。
-- 将导出路径设置移入独立设置窗口，并在左下角提供齿轮入口。
-- 新增“关于我们”页面，展示当前版本、软件名称和设计理念。
-- 移除标题栏中的 `WINDOWS DESKTOP` 副标题，简化顶部信息。
-- 应用图标改为透明着色线稿，使标题栏和设置页的背景更统一。
-- 保留 0.1.3 的导出状态恢复、目录重选和接口限流降速修复。
+- 设置窗口新增“界面语言”，支持简体中文和 English。
+- 语言设置会持久保存，保存后主窗口、设置窗口、提示框和活动日志立即同步切换。
+- 简体中文标题显示为“QQ邮箱记事本导出器”，英文标题显示为
+  “QQ Mail Notebook Exporter”。
+- 主界面按钮、状态、指标、设置页和关于页均提供完整中英文对应文案。
+- 常见登录、接口、图片和 Word 写入错误也会跟随界面语言显示。
+- 保留 0.1.4 的自定义安装目录、独立设置窗口、关于页和品牌图标更新。
 
 ## 文件
 
-- `QQNoteExporter-Setup-0.1.4.exe`：Windows 安装程序。
-- `QQNoteExporter-Portable-0.1.4.zip`：解压后双击
+- `QQNoteExporter-Setup-0.1.5.exe`：Windows 安装程序。
+- `QQNoteExporter-Portable-0.1.5.zip`：解压后双击
   `QQNoteExporter.exe` 运行。
 - `QQNotebookExporter-LocalSigning.cer`：用于验证发布文件签名的自签名公钥证书。
 - `SHA256SUMS.txt`：发布文件校验值。
@@ -33,15 +33,15 @@ Windows SmartScreen 仍可能显示“未知发布者”。
 查看签名状态：
 
 ```powershell
-Get-AuthenticodeSignature .\QQNoteExporter-Setup-0.1.4.exe |
+Get-AuthenticodeSignature .\QQNoteExporter-Setup-0.1.5.exe |
     Format-List Status, StatusMessage, SignerCertificate, TimeStamperCertificate
 ```
 
 校验 SHA256：
 
 ```powershell
-Get-FileHash .\QQNoteExporter-Setup-0.1.4.exe -Algorithm SHA256
-Get-FileHash .\QQNoteExporter-Portable-0.1.4.zip -Algorithm SHA256
+Get-FileHash .\QQNoteExporter-Setup-0.1.5.exe -Algorithm SHA256
+Get-FileHash .\QQNoteExporter-Portable-0.1.5.zip -Algorithm SHA256
 ```
 
 ## 隐私边界

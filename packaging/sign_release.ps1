@@ -7,7 +7,7 @@ param(
 
     [string[]]$Files = @(
         "dist\QQNoteExporter\QQNoteExporter.exe",
-        "release\QQNoteExporter-Setup-0.1.4.exe"
+        "release\QQNoteExporter-Setup-0.1.5.exe"
     )
 )
 
