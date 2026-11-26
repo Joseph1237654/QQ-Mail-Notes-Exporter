@@ -25,12 +25,6 @@ QLabel#Brand {
     font-weight: 600;
 }
 
-QLabel#AppIcon {
-    background: #FFFFFF;
-    border: 0;
-    border-radius: 4px;
-}
-
 QLabel#BrandMeta {
     color: #A8A8A8;
     font-size: 11px;
@@ -47,6 +41,24 @@ QFrame#Sidebar {
     background: #FAFAFA;
     border: 0;
     border-right: 1px solid #D5D5D5;
+}
+
+QPushButton#SettingsButton {
+    background: transparent;
+    border: 1px solid transparent;
+    color: #555555;
+    padding: 0;
+    font-family: "Segoe UI Symbol", "Microsoft YaHei";
+    font-size: 21px;
+}
+
+QPushButton#SettingsButton:hover {
+    background: #E7E7E7;
+    border-color: #D0D0D0;
+}
+
+QPushButton#SettingsButton:pressed {
+    background: #DEDEDE;
 }
 
 QWidget#Content {
@@ -172,6 +184,81 @@ QFrame#Rule {
     background: #D8D8D8;
     border: 0;
     max-height: 1px;
+}
+
+QDialog#SettingsDialog {
+    background: #F2F2F2;
+}
+
+QFrame#SettingsNav {
+    background: #FAFAFA;
+    border: 0;
+    border-right: 1px solid #D5D5D5;
+}
+
+QLabel#SettingsNavTitle {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+QLabel#SettingsNavSubtitle {
+    color: #777777;
+    font-size: 11px;
+}
+
+QPushButton#SettingsNavItem {
+    background: transparent;
+    border: 1px solid transparent;
+    text-align: left;
+    padding: 0 12px;
+    min-height: 42px;
+}
+
+QPushButton#SettingsNavItem:hover:!checked {
+    background: #E7E7E7;
+    border-color: #D0D0D0;
+}
+
+QPushButton#SettingsNavItem:checked {
+    background: #111111;
+    border-color: #111111;
+    color: #FFFFFF;
+    font-weight: 600;
+}
+
+QWidget#SettingsPanel {
+    background: #F2F2F2;
+}
+
+QLabel#SettingsPageTitle {
+    font-size: 24px;
+    font-weight: 600;
+}
+
+QLabel#SettingsDescription {
+    color: #555555;
+    font-size: 13px;
+}
+
+QLabel#AboutName {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+QLabel#AboutVersion {
+    color: #777777;
+    font-size: 12px;
+}
+
+QLabel#AboutTagline {
+    color: #333333;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+QLabel#AboutBody {
+    color: #4A4A4A;
+    font-size: 13px;
 }
 
 QToolTip {
