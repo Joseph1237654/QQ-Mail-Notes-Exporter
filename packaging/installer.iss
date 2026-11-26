@@ -13,6 +13,7 @@ AppName={#AppName}
 AppVersion={#AppVersion}
 AppPublisher={#AppPublisher}
 DefaultDirName={localappdata}\Programs\QQNoteExporter
+DisableDirPage=no
 DefaultGroupName={#AppName}
 DisableProgramGroupPage=yes
 PrivilegesRequired=lowest

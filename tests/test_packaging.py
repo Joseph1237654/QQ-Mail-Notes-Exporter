@@ -8,6 +8,7 @@ import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 VERIFIER_PATH = REPO_ROOT / "packaging" / "verify_release.py"
+INSTALLER_PATH = REPO_ROOT / "packaging" / "installer.iss"
 
 
 def _load_verifier():
@@ -84,6 +85,13 @@ def test_release_verifier_requires_application_executable(tmp_path) -> None:
 
     with pytest.raises(verifier.ReleaseVerificationError, match="缺少发布文件"):
         verifier.verify_release(release)
+
+
+def test_installer_always_allows_install_directory_selection() -> None:
+    content = INSTALLER_PATH.read_text(encoding="utf-8")
+
+    assert "DisableDirPage=no" in content
+    assert "DefaultDirName={localappdata}\\Programs\\QQNoteExporter" in content
 
 
 def _build_release_tree(tmp_path: Path) -> Path:

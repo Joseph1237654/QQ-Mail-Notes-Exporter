@@ -48,6 +48,8 @@ python scripts\build_windows.py --installer
 ```
 
 也可以设置 `INNO_SETUP_COMPILER` 指向 `ISCC.exe`。安装包输出到 `release/`。
+安装向导始终显示安装目录选择页；`tests/test_packaging.py` 会检查该设置，避免后续修改
+Inno Setup 配置时退回为自动隐藏。
 
 ## 发布前检查
 
